@@ -79,8 +79,10 @@ type UserChangeEvent struct {
 type EmojiChangedEvent struct {
 	Type           string   `json:"type"`
 	SubType        string   `json:"subtype"`
-	Name           string   `json:"name"`
-	Names          []string `json:"names"`
+	Name           string   `json:"name"`     // subtype=add
+	Names          []string `json:"names"`    // subtype=remove
+	OldName        string   `json:"old_name"` // subtype=rename
+	NewName        string   `json:"new_name"` // subtype=rename
 	Value          string   `json:"value"`
 	EventTimestamp string   `json:"event_ts"`
 }
