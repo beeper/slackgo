@@ -148,9 +148,10 @@ type UserPresence struct {
 }
 
 type ClientBootTeam struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	URL    string `json:"url"`
+	Domain string `json:"domain"`
 }
 
 type ClientBootResponse struct {
