@@ -147,16 +147,9 @@ type UserPresence struct {
 	LastActivity    JSONTime `json:"last_activity,omitempty"`
 }
 
-type ClientBootTeam struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	URL    string `json:"url"`
-	Domain string `json:"domain"`
-}
-
 type ClientBootResponse struct {
-	Self User           `json:"self"`
-	Team ClientBootTeam `json:"team"`
+	Self User     `json:"self"`
+	Team TeamInfo `json:"team"`
 	SlackResponse
 }
 
