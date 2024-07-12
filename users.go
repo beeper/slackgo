@@ -147,9 +147,19 @@ type UserPresence struct {
 	LastActivity    JSONTime `json:"last_activity,omitempty"`
 }
 
+type BootChannel struct {
+	Channel
+	Latest string `json:"latest"`
+}
+
 type ClientBootResponse struct {
 	Self User     `json:"self"`
 	Team TeamInfo `json:"team"`
+
+	IsOpen         []string          `json:"is_open"`
+	ChannelsLatest map[string]string `json:"channels_latest"`
+	Channels       []BootChannel     `json:"channels"`
+	IMs            []BootChannel     `json:"ims"`
 	SlackResponse
 }
 
@@ -474,6 +484,85 @@ func (api *Client) ClientBootContext(ctx context.Context) (response *ClientBootR
 	response = &ClientBootResponse{}
 
 	err = api.postMethod(ctx, "client.boot", values, response)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := response.Err(); err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+type XClientParams struct {
+	Reason  string
+	Mode    string // online
+	Sonic   bool   // true
+	AppName string // client
+}
+
+func (xcp *XClientParams) Set(values url.Values) {
+	if xcp == nil {
+		return
+	}
+	if xcp.Reason != "" {
+		values.Set("_x_reason", xcp.Reason)
+	}
+	if xcp.Mode != "" {
+		values.Set("_x_mode", xcp.Mode)
+	}
+	if xcp.Sonic {
+		values.Set("_x_sonic", "true")
+	}
+	if xcp.AppName != "" {
+		values.Set("_x_app_name", xcp.AppName)
+	}
+}
+
+type ClientCountsParams struct {
+	ThreadCountsByChannel bool
+	OrgWideAware          bool
+	IncludeFileChannels   bool
+	XClientParams         *XClientParams
+}
+
+type ClientCountsChannel struct {
+	ID             string `json:"id"`
+	LastRead       string `json:"last_read"`
+	Latest         string `json:"latest"`
+	Updated        string `json:"updated"`
+	HistoryInvalid string `json:"history_invalid"`
+	MentionCount   int    `json:"mention_count"`
+	HasUnreads     bool   `json:"has_unreads"`
+}
+
+type ClientCountsResponse struct {
+	SlackResponse
+
+	Channels []ClientCountsChannel `json:"channels"`
+	IMs      []ClientCountsChannel `json:"ims"`
+	MpIMs    []ClientCountsChannel `json:"mpims"`
+	// also contains threads, channel_badges, file_channels, alerts and saved
+}
+
+func (api *Client) ClientCountsContext(ctx context.Context, params *ClientCountsParams) (response *ClientCountsResponse, err error) {
+	values := url.Values{
+		"token": {api.token},
+	}
+	if params.ThreadCountsByChannel {
+		values.Set("thread_counts_by_channel", "true")
+	}
+	if params.OrgWideAware {
+		values.Set("org_wide_aware", "true")
+	}
+	if params.IncludeFileChannels {
+		values.Set("include_file_channels", "true")
+	}
+	params.XClientParams.Set(values)
+	response = &ClientCountsResponse{}
+
+	err = api.postMethod(ctx, "client.counts", values, response)
 	if err != nil {
 		return nil, err
 	}
