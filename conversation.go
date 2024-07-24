@@ -525,6 +525,7 @@ type OpenConversationParameters struct {
 	ReturnIM  bool
 	Users     []string
 
+	Quiet           bool
 	PreventCreation bool
 }
 
@@ -544,6 +545,9 @@ func (api *Client) OpenConversationContext(ctx context.Context, params *OpenConv
 	}
 	if params.Users != nil {
 		values.Add("users", strings.Join(params.Users, ","))
+	}
+	if params.Quiet {
+		values.Add("quiet", "1")
 	}
 	if params.PreventCreation {
 		values.Add("prevent_creation", "true")

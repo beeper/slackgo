@@ -154,3 +154,33 @@ func (api *Client) SearchMessagesContext(ctx context.Context, query string, para
 	}
 	return &response.SearchMessages, nil
 }
+
+type searchUsersInput struct {
+	Count                   int    `json:"count"`
+	Filter                  string `json:"filter"`
+	Fuzz                    int    `json:"fuzz"`
+	IncludeProfileOnlyUsers bool   `json:"include_profile_only_users"`
+	Query                   string `json:"query"`
+	SearchEmail             bool   `json:"search_email"`
+	Token                   string `json:"token"`
+	UAX29Tokenizer          bool   `json:"uax29_tokenizer"`
+}
+
+type SearchUsers struct {
+	SlackResponse
+	Results []*User `json:"results"`
+}
+
+func (api *Client) SearchUsersCacheContext(ctx context.Context, teamID, query string) (resp *SearchUsers, err error) {
+	err = api.postEdgeAPI(ctx, teamID, "users.search", searchUsersInput{
+		Count:                   24,
+		Filter:                  "NOT deactivated",
+		Fuzz:                    1,
+		IncludeProfileOnlyUsers: true,
+		Query:                   query,
+		SearchEmail:             true,
+		Token:                   api.token,
+		UAX29Tokenizer:          false,
+	}, &resp)
+	return
+}

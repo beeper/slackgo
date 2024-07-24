@@ -242,6 +242,22 @@ func postForm(ctx context.Context, client httpClient, endpoint string, values ur
 	return doPost(ctx, client, req, newJSONParser(intf), d)
 }
 
+// post a url encoded form.
+func postJSONAlt(ctx context.Context, client httpClient, endpoint string, values any, intf interface{}, d Debug, cookies []*http.Cookie) error {
+	var reqBody bytes.Buffer
+	err := json.NewEncoder(&reqBody).Encode(values)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, &reqBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "text/plain;charset=UTF-8")
+	addCookies(req, cookies)
+	return doPost(ctx, client, req, newJSONParser(intf), d)
+}
+
 func getResource(ctx context.Context, client httpClient, endpoint, token string, values url.Values, intf interface{}, d Debug) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
