@@ -182,5 +182,9 @@ func (api *Client) SearchUsersCacheContext(ctx context.Context, teamID, query st
 		Token:                   api.token,
 		UAX29Tokenizer:          false,
 	}, &resp)
+	if err != nil {
+		return
+	}
+	err = resp.Err()
 	return
 }
