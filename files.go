@@ -1,10 +1,14 @@
 package slack
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
+	"net/http"
+	"net/textproto"
 	"net/url"
 	"strconv"
 	"strings"
@@ -90,6 +94,10 @@ type File struct {
 	IsStarred       bool     `json:"is_starred"`
 	Shares          Share    `json:"shares"`
 	FileAccess      string   `json:"file_access"`
+
+	SubType          string `json:"subtype"`
+	DurationMS       int    `json:"duration_ms"`
+	AudioWaveSamples []int  `json:"audio_wave_samples"`
 }
 
 type Share struct {
@@ -395,6 +403,161 @@ func (api *Client) UploadFileContext(ctx context.Context, params FileUploadParam
 	}
 
 	return &response.File, response.Err()
+}
+
+type GetFileUploadURLParameters struct {
+	Filename string
+	Length   int
+	SubType  string
+	XClientParams
+}
+
+type FileUploadURL struct {
+	SlackResponse
+	File      string `json:"file"`
+	UploadURL string `json:"upload_url"`
+
+	Params GetFileUploadURLParameters `json:"-"`
+}
+
+func (api *Client) GetFileUploadURL(ctx context.Context, params GetFileUploadURLParameters) (*FileUploadURL, error) {
+	values := url.Values{
+		"token": {api.token},
+	}
+	if params.Filename != "" {
+		values.Add("filename", params.Filename)
+	}
+	if params.Length != 0 {
+		values.Add("length", strconv.Itoa(params.Length))
+	}
+	if params.SubType != "" {
+		values.Add("subtype", params.SubType)
+	}
+	params.XClientParams.Set(values)
+	var resp *FileUploadURL
+	err := api.postMethod(ctx, "files.getUploadURL", values, &resp)
+	if err != nil {
+		return nil, err
+	}
+	resp.Params = params
+	return resp, resp.Err()
+}
+
+type CompletedFile struct {
+	ID      string `json:"id"`
+	Title   string `json:"title"`
+	SubType string `json:"subtype,omitempty"`
+}
+
+type CompleteFileUpload struct {
+	SlackResponse
+	Files []*CompletedFile `json:"files"`
+}
+
+func (api *Client) CompleteFileUpload(ctx context.Context, fu *FileUploadURL) error {
+	files, _ := json.Marshal([]CompletedFile{{
+		ID:      fu.File,
+		Title:   fu.Params.Filename,
+		SubType: fu.Params.SubType,
+	}})
+	values := url.Values{
+		"token": {api.token},
+		"files": {string(files)},
+	}
+	fu.Params.XClientParams.Set(values)
+	var resp *CompleteFileUpload
+	err := api.postMethod(ctx, "files.completeUpload", values, &resp)
+	if err != nil {
+		return err
+	}
+	return resp.Err()
+}
+
+var quoteEscaper = strings.NewReplacer(`\`, `\\`, `"`, `\"`)
+
+func (api *Client) UploadToURL(ctx context.Context, fu *FileUploadURL, mimeType string, data []byte) error {
+	var buf bytes.Buffer
+	mp := multipart.NewWriter(&buf)
+	part, err := mp.CreatePart(textproto.MIMEHeader{
+		"Content-Disposition": {fmt.Sprintf(`form-data; name="file"; filename="%s"`, quoteEscaper.Replace(fu.Params.Filename))},
+		"Content-Type":        {mimeType},
+	})
+	if err != nil {
+		return err
+	}
+	_, err = part.Write(data)
+	if err != nil {
+		return err
+	}
+	err = mp.Close()
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fu.UploadURL, &buf)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", mp.FormDataContentType())
+	req.Header.Set("Origin", "https://app.slack.com")
+	resp, err := api.httpclient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		respDat, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("upload failed with status %d: %s", resp.StatusCode, respDat)
+	}
+	return nil
+}
+
+type ShareFileParams struct {
+	Files       []string `json:"files"`
+	Channel     string   `json:"channel"`
+	Broadcast   bool     `json:"broadcast"`
+	ClientMsgID string   `json:"client_msg_id"`
+	Blocks      []Block  `json:"blocks"`
+	Text        string   `json:"text"`
+
+	//ResharingAware      bool     `json:"resharing_aware"`
+	//SkipDLPUserWarning  bool     `json:"skip_dlp_user_warning"`
+	//FromShareModal      bool     `json:"from_share_modal"`
+	//Unfurl              []string `json:"unfurl"`
+	//ClientContextTeamID string   `json:"client_context_team_id"`
+	//XClientParams
+}
+
+type ShareFile struct {
+	SlackResponse
+	FileMsgTS string `json:"file_msg_ts"`
+}
+
+func (api *Client) ShareFile(ctx context.Context, params ShareFileParams) (*ShareFile, error) {
+	values := url.Values{
+		"token":     {api.token},
+		"files":     {strings.Join(params.Files, ",")},
+		"channel":   {params.Channel},
+		"broadcast": {strconv.FormatBool(params.Broadcast)},
+	}
+	if params.Blocks != nil {
+		blocks, err := json.Marshal(params.Blocks)
+		if err != nil {
+			return nil, err
+		}
+		values.Set("blocks", string(blocks))
+	} else if params.Text != "" {
+		values.Set("text", params.Text)
+	}
+	if params.ClientMsgID != "" {
+		values.Set("client_msg_id", params.ClientMsgID)
+	}
+	//params.XClientParams.Set(values)
+	var resp *ShareFile
+	err := api.postMethod(ctx, "files.share", values, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, resp.Err()
 }
 
 // DeleteFileComment deletes a file's comment
