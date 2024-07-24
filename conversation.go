@@ -524,6 +524,8 @@ type OpenConversationParameters struct {
 	ChannelID string
 	ReturnIM  bool
 	Users     []string
+
+	PreventCreation bool
 }
 
 // OpenConversation opens or resumes a direct message or multi-person direct message
@@ -542,6 +544,9 @@ func (api *Client) OpenConversationContext(ctx context.Context, params *OpenConv
 	}
 	if params.Users != nil {
 		values.Add("users", strings.Join(params.Users, ","))
+	}
+	if params.PreventCreation {
+		values.Add("prevent_creation", "true")
 	}
 	response := struct {
 		Channel     *Channel `json:"channel"`
