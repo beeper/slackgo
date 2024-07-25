@@ -90,6 +90,13 @@ type RichTextUnknown struct {
 	Raw  string
 }
 
+type RichTextListStyle string
+
+const (
+	RTELStyleOrdered RichTextListStyle = "ordered"
+	RTELStyleBullet  RichTextListStyle = "bullet"
+)
+
 func (u RichTextUnknown) RichTextElementType() RichTextElementType {
 	return u.Type
 }
@@ -97,11 +104,34 @@ func (u RichTextUnknown) RichTextElementType() RichTextElementType {
 type RichTextList struct {
 	Type     RichTextElementType `json:"type"`
 	Elements []RichTextSection   `json:"elements"`
-	Style    string              `json:"style"`
+	Style    RichTextListStyle   `json:"style"`
+	Indent   int                 `json:"indent,omitempty"`
+	Offset   int                 `json:"offset,omitempty"`
+	Border   int                 `json:"border,omitempty"`
 }
 
 func (l RichTextList) RichTextElementType() RichTextElementType {
 	return l.Type
+}
+
+type RichTextQuote struct {
+	Type     RichTextElementType      `json:"type"`
+	Elements []RichTextSectionElement `json:"elements"`
+	Border   int                      `json:"border,omitempty"`
+}
+
+func (q RichTextQuote) RichTextElementType() RichTextElementType {
+	return q.Type
+}
+
+type RichTextPreformatted struct {
+	Type     RichTextElementType      `json:"type"`
+	Elements []RichTextSectionElement `json:"elements"`
+	Border   int                      `json:"border,omitempty"`
+}
+
+func (p RichTextPreformatted) RichTextElementType() RichTextElementType {
+	return p.Type
 }
 
 type RichTextSection struct {
@@ -174,6 +204,33 @@ func (e *RichTextSection) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func NewRichTextList(style RichTextListStyle, indent, offset, border int, elements ...RichTextSection) *RichTextList {
+	return &RichTextList{
+		Type:     RTEList,
+		Style:    style,
+		Indent:   indent,
+		Offset:   offset,
+		Border:   border,
+		Elements: elements,
+	}
+}
+
+func NewRichTextQuote(border int, elements ...RichTextSectionElement) *RichTextQuote {
+	return &RichTextQuote{
+		Type:     RTEQuote,
+		Elements: elements,
+		Border:   border,
+	}
+}
+
+func NewRichTextPreformatted(border int, elements ...RichTextSectionElement) *RichTextPreformatted {
+	return &RichTextPreformatted{
+		Type:     RTEPreformatted,
+		Elements: elements,
+		Border:   border,
+	}
+}
+
 // NewRichTextSectionBlockElement .
 func NewRichTextSection(elements ...RichTextSectionElement) *RichTextSection {
 	return &RichTextSection{
@@ -208,6 +265,10 @@ type RichTextSectionTextStyle struct {
 	Italic bool `json:"italic,omitempty"`
 	Strike bool `json:"strike,omitempty"`
 	Code   bool `json:"code,omitempty"`
+
+	Highlight       bool `json:"highlight,omitempty"`
+	ClientHighlight bool `json:"client_highlight,omitempty"`
+	Unlink          bool `json:"unlink,omitempty"`
 }
 
 type RichTextSectionTextElement struct {
@@ -286,10 +347,11 @@ func NewRichTextSectionEmojiElement(name string, skinTone int, style *RichTextSe
 }
 
 type RichTextSectionLinkElement struct {
-	Type  RichTextSectionElementType `json:"type"`
-	URL   string                     `json:"url"`
-	Text  string                     `json:"text"`
-	Style *RichTextSectionTextStyle  `json:"style,omitempty"`
+	Type   RichTextSectionElementType `json:"type"`
+	URL    string                     `json:"url"`
+	Text   string                     `json:"text"`
+	Unsafe bool                       `json:"unsafe,omitempty"`
+	Style  *RichTextSectionTextStyle  `json:"style,omitempty"`
 }
 
 func (r RichTextSectionLinkElement) RichTextSectionElementType() RichTextSectionElementType {
@@ -355,19 +417,27 @@ func NewRichTextSectionDateElement(timestamp int64) *RichTextSectionDateElement 
 	}
 }
 
+type RichTextBroadcastRange string
+
+const (
+	RichTextBroadcastRangeChannel  RichTextBroadcastRange = "channel"
+	RichTextBroadcastRangeHere     RichTextBroadcastRange = "here"
+	RichTextBroadcastRangeEveryone RichTextBroadcastRange = "everyone"
+)
+
 type RichTextSectionBroadcastElement struct {
 	Type  RichTextSectionElementType `json:"type"`
-	Range string                     `json:"range"`
+	Range RichTextBroadcastRange     `json:"range"`
 }
 
 func (r RichTextSectionBroadcastElement) RichTextSectionElementType() RichTextSectionElementType {
 	return r.Type
 }
 
-func NewRichTextSectionBroadcastElement(rangeStr string) *RichTextSectionBroadcastElement {
+func NewRichTextSectionBroadcastElement(rangeVal RichTextBroadcastRange) *RichTextSectionBroadcastElement {
 	return &RichTextSectionBroadcastElement{
 		Type:  RTSEBroadcast,
-		Range: rangeStr,
+		Range: rangeVal,
 	}
 }
 
