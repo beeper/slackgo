@@ -128,6 +128,68 @@ func (q RichTextQuote) RichTextElementType() RichTextElementType {
 	return q.Type
 }
 
+func (e *RichTextQuote) UnmarshalJSON(b []byte) error {
+	var raw struct {
+		Type        RichTextElementType `json:"type"`
+		RawElements []json.RawMessage   `json:"elements"`
+		Border      int                 `json:"border,omitempty"`
+	}
+	if string(b) == "{}" {
+		return nil
+	}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	elems := make([]RichTextSectionElement, 0, len(raw.RawElements))
+	for _, r := range raw.RawElements {
+		var s struct {
+			Type RichTextSectionElementType `json:"type"`
+		}
+		if err := json.Unmarshal(r, &s); err != nil {
+			return err
+		}
+		var elem RichTextSectionElement
+		switch s.Type {
+		case RTSEText:
+			elem = &RichTextSectionTextElement{}
+		case RTSEChannel:
+			elem = &RichTextSectionChannelElement{}
+		case RTSEUser:
+			elem = &RichTextSectionUserElement{}
+		case RTSEEmoji:
+			elem = &RichTextSectionEmojiElement{}
+		case RTSELink:
+			elem = &RichTextSectionLinkElement{}
+		case RTSETeam:
+			elem = &RichTextSectionTeamElement{}
+		case RTSEUserGroup:
+			elem = &RichTextSectionUserGroupElement{}
+		case RTSEDate:
+			elem = &RichTextSectionDateElement{}
+		case RTSEBroadcast:
+			elem = &RichTextSectionBroadcastElement{}
+		case RTSEColor:
+			elem = &RichTextSectionColorElement{}
+		default:
+			elems = append(elems, &RichTextSectionUnknownElement{
+				Type: s.Type,
+				Raw:  string(r),
+			})
+			continue
+		}
+		if err := json.Unmarshal(r, elem); err != nil {
+			return err
+		}
+		elems = append(elems, elem)
+	}
+	*e = RichTextQuote{
+		Type:     raw.Type,
+		Elements: elems,
+		Border:   raw.Border,
+	}
+	return nil
+}
+
 type RichTextPreformatted struct {
 	Type     RichTextElementType      `json:"type"`
 	Elements []RichTextSectionElement `json:"elements"`
@@ -136,6 +198,68 @@ type RichTextPreformatted struct {
 
 func (p RichTextPreformatted) RichTextElementType() RichTextElementType {
 	return p.Type
+}
+
+func (e *RichTextPreformatted) UnmarshalJSON(b []byte) error {
+	var raw struct {
+		Type        RichTextElementType `json:"type"`
+		RawElements []json.RawMessage   `json:"elements"`
+		Border      int                 `json:"border,omitempty"`
+	}
+	if string(b) == "{}" {
+		return nil
+	}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	elems := make([]RichTextSectionElement, 0, len(raw.RawElements))
+	for _, r := range raw.RawElements {
+		var s struct {
+			Type RichTextSectionElementType `json:"type"`
+		}
+		if err := json.Unmarshal(r, &s); err != nil {
+			return err
+		}
+		var elem RichTextSectionElement
+		switch s.Type {
+		case RTSEText:
+			elem = &RichTextSectionTextElement{}
+		case RTSEChannel:
+			elem = &RichTextSectionChannelElement{}
+		case RTSEUser:
+			elem = &RichTextSectionUserElement{}
+		case RTSEEmoji:
+			elem = &RichTextSectionEmojiElement{}
+		case RTSELink:
+			elem = &RichTextSectionLinkElement{}
+		case RTSETeam:
+			elem = &RichTextSectionTeamElement{}
+		case RTSEUserGroup:
+			elem = &RichTextSectionUserGroupElement{}
+		case RTSEDate:
+			elem = &RichTextSectionDateElement{}
+		case RTSEBroadcast:
+			elem = &RichTextSectionBroadcastElement{}
+		case RTSEColor:
+			elem = &RichTextSectionColorElement{}
+		default:
+			elems = append(elems, &RichTextSectionUnknownElement{
+				Type: s.Type,
+				Raw:  string(r),
+			})
+			continue
+		}
+		if err := json.Unmarshal(r, elem); err != nil {
+			return err
+		}
+		elems = append(elems, elem)
+	}
+	*e = RichTextPreformatted{
+		Type:     raw.Type,
+		Elements: elems,
+		Border:   raw.Border,
+	}
+	return nil
 }
 
 type RichTextSection struct {
