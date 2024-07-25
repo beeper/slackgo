@@ -38,8 +38,12 @@ func (e *RichTextBlock) UnmarshalJSON(b []byte) error {
 		}
 		var elem RichTextElement
 		switch s.Type {
-		case RTESection, RTEPreformatted, RTEQuote:
+		case RTESection:
 			elem = &RichTextSection{}
+		case RTEPreformatted:
+			elem = &RichTextPreformatted{}
+		case RTEQuote:
+			elem = &RichTextQuote{}
 		case RTEList:
 			elem = &RichTextList{}
 		default:
