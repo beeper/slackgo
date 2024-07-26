@@ -594,7 +594,8 @@ var EventMapping = map[string]interface{}{
 
 	"manual_presence_change": ManualPresenceChangeEvent{},
 
-	"user_change": UserChangeEvent{},
+	"user_change":      UserChangeEvent{},
+	"user_invalidated": UserInvalidatedEvent{},
 
 	"emoji_changed": EmojiChangedEvent{},
 

@@ -169,6 +169,10 @@ type UserIdentityResponse struct {
 	SlackResponse
 }
 
+type WrappedUserID struct {
+	ID string `json:"id"`
+}
+
 type UserIdentity struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`

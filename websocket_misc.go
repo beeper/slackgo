@@ -75,6 +75,12 @@ type UserChangeEvent struct {
 	User User   `json:"user"`
 }
 
+type UserInvalidatedEvent struct {
+	Type           string        `json:"type"`
+	User           WrappedUserID `json:"user"`
+	EventTimestamp string        `json:"event_ts"`
+}
+
 // EmojiChangedEvent represents the emoji changed event
 type EmojiChangedEvent struct {
 	Type           string   `json:"type"`
