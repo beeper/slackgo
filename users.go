@@ -421,6 +421,38 @@ func (api *Client) GetUsersContext(ctx context.Context, options ...GetUsersOptio
 	return results, p.Failure(err)
 }
 
+type GetCachedUsersParameters struct {
+	CheckInteraction        bool             `json:"check_interaction"`
+	IncludeProfileOnlyUsers bool             `json:"include_profile_only_users"`
+	Token                   string           `json:"token"`
+	UpdatedIDs              map[string]int64 `json:"updated_ids"`
+}
+
+type GetCachedUsersResponse struct {
+	SlackResponse
+	Results           []*User         `json:"results"`
+	PresenceActiveIDs []string        `json:"presence_active_ids"`
+	CanInteract       map[string]bool `json:"can_interact"`
+}
+
+func (api *Client) GetUsersCacheContext(ctx context.Context, teamID string, params GetCachedUsersParameters) (map[string]*User, error) {
+	params.Token = api.token
+	var resp GetCachedUsersResponse
+	err := api.postEdgeAPI(ctx, teamID, "users.info", params, &resp)
+	if err != nil {
+		return nil, err
+	}
+	err = resp.Err()
+	if err != nil {
+		return nil, err
+	}
+	output := make(map[string]*User, len(resp.Results))
+	for _, user := range resp.Results {
+		output[user.ID] = user
+	}
+	return output, nil
+}
+
 // GetUserByEmail will retrieve the complete user information by email
 func (api *Client) GetUserByEmail(email string) (*User, error) {
 	return api.GetUserByEmailContext(context.Background(), email)
