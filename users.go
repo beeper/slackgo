@@ -33,6 +33,7 @@ type UserProfile struct {
 	Image192               string                              `json:"image_192"`
 	Image512               string                              `json:"image_512"`
 	ImageOriginal          string                              `json:"image_original"`
+	AvatarHash             string                              `json:"avatar_hash"`
 	Title                  string                              `json:"title"`
 	BotID                  string                              `json:"bot_id,omitempty"`
 	ApiAppID               string                              `json:"api_app_id,omitempty"`
