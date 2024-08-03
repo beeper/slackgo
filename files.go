@@ -206,7 +206,7 @@ type completeUploadExternalParameters struct {
 
 type completeUploadExternalResponse struct {
 	SlackResponse
-	Files []FileSummary `json:"files"`
+	Files []File `json:"files"`
 }
 
 type fileResponseFull struct {
@@ -727,7 +727,7 @@ func (api *Client) completeUploadExternal(ctx context.Context, fileID string, pa
 
 // UploadFileV2 uploads file to a given slack channel using 3 steps.
 // For more details, see UploadFileV2Context documentation.
-func (api *Client) UploadFileV2(params UploadFileV2Parameters) (*FileSummary, error) {
+func (api *Client) UploadFileV2(params UploadFileV2Parameters) (*File, error) {
 	return api.UploadFileV2Context(context.Background(), params)
 }
 
@@ -737,7 +737,7 @@ func (api *Client) UploadFileV2(params UploadFileV2Parameters) (*FileSummary, er
 //  3. Complete the upload and share it to the specified channel using files.completeUploadExternal
 //
 // Slack Docs: https://api.slack.com/messaging/files#uploading_files
-func (api *Client) UploadFileV2Context(ctx context.Context, params UploadFileV2Parameters) (file *FileSummary, err error) {
+func (api *Client) UploadFileV2Context(ctx context.Context, params UploadFileV2Parameters) (file *File, err error) {
 	if params.Filename == "" {
 		return nil, fmt.Errorf("file.upload.v2: filename cannot be empty")
 	}
