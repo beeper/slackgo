@@ -536,7 +536,7 @@ func (smc *Client) receiveMessagesInto(ctx context.Context, conn *websocket.Conn
 		return err
 	}
 
-	if smc.debug {
+	if smc.debug && false {
 		buf := &bytes.Buffer{}
 		d := json.NewEncoder(buf)
 		d.SetIndent("", "  ")
