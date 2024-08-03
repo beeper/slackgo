@@ -196,32 +196,35 @@ func (rtm *RTM) connect(connectionCount int, useRTMStart bool) (*Info, *websocke
 // slack API. Else it uses the "rtm.connect" method to connect
 func (rtm *RTM) startRTMAndDial(useRTMStart bool) (info *Info, _ *websocket.Conn, err error) {
 	// TODO replace rtm.connect with /api/client.boot
-	if useRTMStart {
-		rtm.Debugf("Starting RTM")
-		info, _, err = rtm.StartRTM()
-	} else {
-		rtm.Debugf("Connecting to RTM")
-		info, _, err = rtm.ConnectRTM()
-	}
+	//if useRTMStart {
+	//	rtm.Debugf("Starting RTM")
+	//	info, _, err = rtm.StartRTM()
+	//} else {
+	//	rtm.Debugf("Connecting to RTM")
+	//	info, _, err = rtm.ConnectRTM()
+	//}
 	// TODO replace hardcoded url with ???.getWebsocketURL
-	u := stdurl.URL{
-		Scheme: "wss",
-		Host:   "wss-primary.slack.com",
-		Path:   "/",
-		RawQuery: stdurl.Values{
-			"token": {rtm.token},
-			//"sync_desync":           {"1"},
-			//"slack_client":          {"desktop"},
-			//"start_args":            {"?agent=client&org_wide_aware=true&agent_version=1695088041&eac_cache_ts=true&cache_ts=0&name_tagging=true&only_self_subteams=true&connect_only=true&ms_latest=true"},
-			//"no_query_on_subscribe": {"1"},
-			//"flannel":               {"3"},
-			//"lazy_channels":         {"1"},
-			//"gateway_server":        {"...-1"},
-			//"batch_presence_aware":  {"1"},
-		}.Encode(),
+	u := rtm.reconnectURL
+	if u == "" {
+		u = (&stdurl.URL{
+			Scheme: "wss",
+			Host:   "wss-primary.slack.com",
+			Path:   "/",
+			RawQuery: stdurl.Values{
+				"token": {rtm.token},
+				//"sync_desync":           {"1"},
+				//"slack_client":          {"desktop"},
+				//"start_args":            {"?agent=client&org_wide_aware=true&agent_version=1695088041&eac_cache_ts=true&cache_ts=0&name_tagging=true&only_self_subteams=true&connect_only=true&ms_latest=true"},
+				//"no_query_on_subscribe": {"1"},
+				//"flannel":               {"3"},
+				//"lazy_channels":         {"1"},
+				//"gateway_server":        {"...-1"},
+				//"batch_presence_aware":  {"1"},
+			}.Encode(),
+		}).String()
 	}
 
-	rtm.Debugf("Dialing to websocket on url %s", u.String())
+	rtm.Debugf("Dialing to websocket on url %s", u)
 	// Only use HTTPS for connections to prevent MITM attacks on the connection.
 	upgradeHeader := http.Header{}
 	upgradeHeader.Add("Origin", "https://app.slack.com")
@@ -237,7 +240,7 @@ func (rtm *RTM) startRTMAndDial(useRTMStart bool) (info *Info, _ *websocket.Conn
 		jar.SetCookies(&stdurl.URL{Host: "slack.com", Scheme: "https", Path: "/"}, rtm.cookies)
 		dialer.Jar = jar
 	}
-	conn, _, err := dialer.Dial(u.String(), upgradeHeader)
+	conn, _, err := dialer.Dial(u, upgradeHeader)
 	if err != nil {
 		rtm.Debugf("Failed to dial to the websocket: %s", err)
 		return nil, nil, err
@@ -448,6 +451,8 @@ func (rtm *RTM) handleRawEvent(rawEvent json.RawMessage) string {
 		rtm.IncomingEvents <- RTMEvent{"hello", &HelloEvent{}}
 	case rtmEventTypePong:
 		rtm.handlePong(rawEvent)
+	case rtmEventTypeReconnectURL:
+		rtm.handleReconnectURL(rawEvent)
 	case rtmEventTypeGoodbye:
 		// just return the event type up for goodbye, will be handled by caller.
 	default:
@@ -479,6 +484,20 @@ func (rtm *RTM) handleAck(event json.RawMessage) {
 	} else {
 		rtm.IncomingEvents <- RTMEvent{"ack_error", &AckErrorEvent{ErrorObj: fmt.Errorf("ack decode failure")}}
 	}
+}
+
+func (rtm *RTM) handleReconnectURL(event json.RawMessage) {
+	var (
+		p ReconnectUrlEvent
+	)
+
+	if err := json.Unmarshal(event, &p); err != nil {
+		rtm.Client.log.Println("RTM Error unmarshalling 'reconnect_url' event:", err)
+		return
+	}
+
+	rtm.reconnectURL = p.URL
+	rtm.Client.log.Println("Updated reconnect URL to", p.URL)
 }
 
 // handlePong handles an incoming 'PONG' message which should be in response to

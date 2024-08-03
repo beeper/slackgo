@@ -19,6 +19,7 @@ const (
 	rtmEventTypeHello               = "hello"
 	rtmEventTypeGoodbye             = "goodbye"
 	rtmEventTypePong                = "pong"
+	rtmEventTypeReconnectURL        = "reconnect_url"
 	rtmEventTypeDesktopNotification = "desktop_notification"
 )
 
