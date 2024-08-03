@@ -1,11 +1,14 @@
 package slack
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"testing"
 )
 
@@ -39,7 +42,6 @@ func TestGetPermalink(t *testing.T) {
 	timeStamp := "p135854651500008"
 
 	http.HandleFunc("/chat.getPermalink", func(rw http.ResponseWriter, r *http.Request) {
-
 		if got, want := r.Header.Get("Content-Type"), "application/x-www-form-urlencoded"; got != want {
 			t.Errorf("request uses unexpected content type: got %s, want %s", got, want)
 		}
@@ -183,6 +185,28 @@ func TestPostMessage(t *testing.T) {
 				"user_auth_message": []string{"Please!"},
 			},
 		},
+		"LinkNames true": {
+			endpoint: "/chat.postMessage",
+			opt: []MsgOption{
+				MsgOptionLinkNames(true),
+			},
+			expected: url.Values{
+				"channel":    []string{"CXXX"},
+				"token":      []string{"testing-token"},
+				"link_names": []string{"true"},
+			},
+		},
+		"LinkNames false": {
+			endpoint: "/chat.postMessage",
+			opt: []MsgOption{
+				MsgOptionLinkNames(false),
+			},
+			expected: url.Values{
+				"channel":    []string{"CXXX"},
+				"token":      []string{"testing-token"},
+				"link_names": []string{"false"},
+			},
+		},
 	}
 
 	once.Do(startServer)
@@ -295,4 +319,51 @@ func TestPostMessageWhenMsgOptionDeleteOriginalApplied(t *testing.T) {
 	responseURL := api.endpoint + "response-url"
 
 	_, _, _ = api.PostMessage("CXXX", MsgOptionDeleteOriginal(responseURL))
+}
+
+func TestSendMessageContextRedactsTokenInDebugLog(t *testing.T) {
+	tests := []struct {
+		name  string
+		token string
+		want  string
+	}{
+		{
+			name:  "regular token",
+			token: "xtest-token-1234-abcd",
+			want:  "xtest-REDACTED",
+		},
+		{
+			name:  "refresh token",
+			token: "xoxe.xtest-token-1234-abcd",
+			want:  "xoxe.xtest-REDACTED",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			once.Do(startServer)
+			buf := bytes.NewBufferString("")
+
+			opts := []Option{
+				OptionAPIURL("http://" + serverAddr + "/"),
+				OptionLog(log.New(buf, "", log.Lshortfile)),
+				OptionDebug(true),
+			}
+			api := New(tt.token, opts...)
+			// Why send the token in the message text too? To test that we're not
+			// redacting substrings in the request which look like a token but aren't.
+			api.SendMessage("CXXX", MsgOptionText(token, false))
+			s := buf.String()
+
+			re := regexp.MustCompile(`token=[\w.-]*`)
+			want := "token=" + tt.want
+			if got := re.FindString(s); got != want {
+				t.Errorf("Logged token in SendMessageContext(): got %q, want %q", got, want)
+			}
+			re = regexp.MustCompile(`text=[\w.-]*`)
+			want = "text=" + token
+			if got := re.FindString(s); got != want {
+				t.Errorf("Logged text in SendMessageContext(): got %q, want %q", got, want)
+			}
+		})
+	}
 }
