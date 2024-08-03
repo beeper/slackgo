@@ -308,7 +308,7 @@ func checkStatusCode(resp *http.Response, d Debug) error {
 	if resp.StatusCode == http.StatusTooManyRequests {
 		retry, err := strconv.ParseInt(resp.Header.Get("Retry-After"), 10, 64)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse retry-after header: %w", err)
 		}
 		return &RateLimitedError{time.Duration(retry) * time.Second}
 	}
