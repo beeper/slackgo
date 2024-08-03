@@ -790,3 +790,9 @@ var EventsAPIInnerEventMapping = map[EventsAPIType]interface{}{
 	TeamAccessRevoked:           TeamAccessRevokedEvent{},
 	UserProfileChanged:          UserProfileChangedEvent{},
 }
+
+func init() {
+	for k, v := range slack.EventMapping {
+		EventsAPIInnerEventMapping[EventsAPIType(k)] = v
+	}
+}

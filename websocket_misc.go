@@ -137,6 +137,8 @@ type MemberJoinedChannelEvent struct {
 	ChannelType string `json:"channel_type"`
 	Team        string `json:"team"`
 	Inviter     string `json:"inviter"`
+
+	EventTimestamp string `json:"event_ts"`
 }
 
 // MemberLeftChannelEvent a user left a public or private channel
@@ -146,4 +148,6 @@ type MemberLeftChannelEvent struct {
 	Channel     string `json:"channel"`
 	ChannelType string `json:"channel_type"`
 	Team        string `json:"team"`
+
+	EventTimestamp string `json:"event_ts"`
 }
