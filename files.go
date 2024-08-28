@@ -564,6 +564,9 @@ func (api *Client) ShareFile(ctx context.Context, params ShareFileParams) (*Shar
 	} else if params.Text != "" {
 		values.Set("text", params.Text)
 	}
+	if params.ThreadTS != "" {
+		values.Set("thread_ts", params.ThreadTS)
+	}
 	if params.ClientMsgID != "" {
 		values.Set("client_msg_id", params.ClientMsgID)
 	}
