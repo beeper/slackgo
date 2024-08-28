@@ -533,6 +533,7 @@ type ShareFileParams struct {
 	ClientMsgID string   `json:"client_msg_id"`
 	Blocks      []Block  `json:"blocks"`
 	Text        string   `json:"text"`
+	ThreadTS    string   `json:"thread_ts"`
 
 	//ResharingAware      bool     `json:"resharing_aware"`
 	//SkipDLPUserWarning  bool     `json:"skip_dlp_user_warning"`
