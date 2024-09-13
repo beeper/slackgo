@@ -64,7 +64,8 @@ type Attachment struct {
 	Fallback string `json:"fallback,omitempty"`
 
 	CallbackID string `json:"callback_id,omitempty"`
-	ID         int    `json:"id,omitempty"`
+	// TODO may be string?
+	//ID         int    `json:"id,omitempty"`
 
 	AuthorID      string `json:"author_id,omitempty"`
 	AuthorName    string `json:"author_name,omitempty"`
