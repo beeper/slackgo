@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -49,6 +50,7 @@ type InvalidAuthEvent struct{}
 // UnmarshallingErrorEvent is used when there are issues deconstructing a response
 type UnmarshallingErrorEvent struct {
 	ErrorObj error
+	Raw      json.RawMessage
 }
 
 func (u UnmarshallingErrorEvent) Error() string {

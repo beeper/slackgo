@@ -40,7 +40,7 @@ func parseOuterEvent(rawE json.RawMessage) (EventsAPIEvent, error) {
 			"unmarshalling_error",
 			"",
 			"",
-			&slack.UnmarshallingErrorEvent{ErrorObj: err},
+			&slack.UnmarshallingErrorEvent{ErrorObj: err, Raw: rawE},
 			EventsAPIInnerEvent{},
 		}, err
 	}
@@ -54,7 +54,7 @@ func parseOuterEvent(rawE json.RawMessage) (EventsAPIEvent, error) {
 				"unmarshalling_error",
 				"",
 				"",
-				&slack.UnmarshallingErrorEvent{ErrorObj: err},
+				&slack.UnmarshallingErrorEvent{ErrorObj: err, Raw: rawE},
 				EventsAPIInnerEvent{},
 			}, err
 		}
@@ -77,7 +77,7 @@ func parseOuterEvent(rawE json.RawMessage) (EventsAPIEvent, error) {
 			"unmarshalling_error",
 			"",
 			"",
-			&slack.UnmarshallingErrorEvent{ErrorObj: err},
+			&slack.UnmarshallingErrorEvent{ErrorObj: err, Raw: rawE},
 			EventsAPIInnerEvent{},
 		}, err
 	}
@@ -103,7 +103,7 @@ func parseInnerEvent(e *EventsAPICallbackEvent) (EventsAPIEvent, error) {
 			"unmarshalling_error",
 			e.APIAppID,
 			e.EnterpriseID,
-			&slack.UnmarshallingErrorEvent{ErrorObj: err},
+			&slack.UnmarshallingErrorEvent{ErrorObj: err, Raw: *rawInnerJSON},
 			EventsAPIInnerEvent{},
 		}, err
 	}
@@ -129,7 +129,7 @@ func parseInnerEvent(e *EventsAPICallbackEvent) (EventsAPIEvent, error) {
 			"unmarshalling_error",
 			e.APIAppID,
 			e.EnterpriseID,
-			&slack.UnmarshallingErrorEvent{ErrorObj: err},
+			&slack.UnmarshallingErrorEvent{ErrorObj: err, Raw: *rawInnerJSON},
 			EventsAPIInnerEvent{},
 		}, err
 	}
@@ -206,7 +206,7 @@ func ParseEvent(rawEvent json.RawMessage, opts ...Option) (EventsAPIEvent, error
 				"unmarshalling_error",
 				"",
 				"",
-				&slack.UnmarshallingErrorEvent{ErrorObj: err},
+				&slack.UnmarshallingErrorEvent{ErrorObj: err, Raw: rawEvent},
 				EventsAPIInnerEvent{},
 			}, err
 		}
@@ -221,7 +221,7 @@ func ParseEvent(rawEvent json.RawMessage, opts ...Option) (EventsAPIEvent, error
 			"unmarshalling_error",
 			"",
 			"",
-			&slack.UnmarshallingErrorEvent{ErrorObj: err},
+			&slack.UnmarshallingErrorEvent{ErrorObj: err, Raw: rawEvent},
 			EventsAPIInnerEvent{},
 		}, err
 	}
