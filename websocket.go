@@ -74,6 +74,8 @@ func (rtm *RTM) Disconnect() error {
 		return nil
 	case <-rtm.disconnected:
 		return ErrAlreadyDisconnected
+	default:
+		return nil
 	}
 }
 

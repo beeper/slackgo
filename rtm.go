@@ -116,7 +116,7 @@ func (api *Client) NewRTM(options ...RTMOption) *RTM {
 		outgoingMessages: make(chan OutgoingMessage, 20),
 		pingInterval:     defaultPingInterval,
 		pingDeadman:      time.NewTimer(deadmanDuration(defaultPingInterval)),
-		killChannel:      make(chan bool),
+		killChannel:      make(chan bool, 1),
 		disconnected:     make(chan struct{}),
 		disconnectedm:    &sync.Once{},
 		forcePing:        make(chan bool),

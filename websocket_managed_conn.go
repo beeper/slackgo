@@ -326,10 +326,7 @@ func (rtm *RTM) handleEvents(events chan json.RawMessage) {
 func (rtm *RTM) handleIncomingEvents(events chan json.RawMessage) {
 	for {
 		if err := rtm.receiveIncomingEvent(events); err != nil {
-			select {
-			case rtm.killChannel <- false:
-			case <-rtm.disconnected:
-			}
+			_ = rtm.Disconnect()
 			return
 		}
 	}
