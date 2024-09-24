@@ -21,6 +21,7 @@ const (
 	rtmEventTypePong                = "pong"
 	rtmEventTypeReconnectURL        = "reconnect_url"
 	rtmEventTypeDesktopNotification = "desktop_notification"
+	rtmEventTypeError               = "error"
 )
 
 // StartRTM calls the "rtm.start" endpoint and returns the provided URL and the full Info block.

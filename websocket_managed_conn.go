@@ -454,6 +454,8 @@ func (rtm *RTM) handleRawEvent(rawEvent json.RawMessage) string {
 		rtm.handlePong(rawEvent)
 	case rtmEventTypeReconnectURL:
 		rtm.handleReconnectURL(rawEvent)
+	case rtmEventTypeError:
+		rtm.handleError(rawEvent)
 	case rtmEventTypeGoodbye:
 		// just return the event type up for goodbye, will be handled by caller.
 	default:
@@ -485,6 +487,23 @@ func (rtm *RTM) handleAck(event json.RawMessage) {
 	} else {
 		rtm.IncomingEvents <- RTMEvent{"ack_error", &AckErrorEvent{ErrorObj: fmt.Errorf("ack decode failure")}}
 	}
+}
+
+func (rtm *RTM) handleError(event json.RawMessage) {
+	var (
+		p RTMErrorEvent
+	)
+
+	if err := json.Unmarshal(event, &p); err != nil {
+		rtm.Client.log.Println("RTM Error unmarshalling 'error' event:", err)
+		return
+	}
+
+	if p.Error.Code == 1 {
+		rtm.reconnectURL = ""
+	}
+
+	rtm.IncomingEvents <- RTMEvent{"error", &p}
 }
 
 func (rtm *RTM) handleReconnectURL(event json.RawMessage) {

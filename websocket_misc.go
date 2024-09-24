@@ -38,6 +38,11 @@ type RTMEvent struct {
 	Data interface{}
 }
 
+type RTMErrorEvent struct {
+	Type  string   `json:"type"`
+	Error RTMError `json:"error"`
+}
+
 // HelloEvent represents the hello event
 type HelloEvent struct{}
 
