@@ -499,11 +499,18 @@ func (rtm *RTM) handleError(event json.RawMessage) {
 		return
 	}
 
-	if p.Error.Code == 1 {
-		rtm.reconnectURL = ""
-	}
-
 	rtm.IncomingEvents <- RTMEvent{"error", &p}
+	switch p.Error.Code {
+	case 1:
+		rtm.reconnectURL = ""
+	case 17:
+		rtm.Client.log.Println("Ratelimited event in RTM, sleeping")
+		// TODO make this less hacky?
+		time.Sleep(1 * time.Minute)
+	case 401:
+		_ = rtm.killConnection(true, ErrRTMInvalidAuth)
+		rtm.IncomingEvents <- RTMEvent{"invalid_auth", &InvalidAuthEvent{}}
+	}
 }
 
 func (rtm *RTM) handleReconnectURL(event json.RawMessage) {

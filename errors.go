@@ -7,6 +7,7 @@ const (
 	ErrAlreadyDisconnected  = errorsx.String("Invalid call to Disconnect - Slack API is already disconnected")
 	ErrRTMDisconnected      = errorsx.String("disconnect received while trying to connect")
 	ErrRTMGoodbye           = errorsx.String("goodbye detected")
+	ErrRTMInvalidAuth       = errorsx.String("invalid authentication")
 	ErrRTMDeadman           = errorsx.String("deadman switch triggered")
 	ErrParametersMissing    = errorsx.String("received empty parameters")
 	ErrBlockIDNotUnique     = errorsx.String("Block ID needs to be unique")
