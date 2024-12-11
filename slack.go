@@ -67,6 +67,7 @@ type Client struct {
 	debug              bool
 	log                ilogger
 	httpclient         httpClient
+	versionData        *VersionData
 
 	cookies []*http.Cookie
 }
@@ -189,7 +190,7 @@ func (api *Client) Debug() bool {
 
 // post to a slack web method.
 func (api *Client) postMethod(ctx context.Context, path string, values url.Values, intf interface{}) error {
-	return postForm(ctx, api.httpclient, api.endpoint+path, values, intf, api, api.cookies)
+	return postForm(ctx, api.httpclient, api.endpoint+path+api.versionData.ToQuery(), values, intf, api, api.cookies)
 }
 
 func (api *Client) postEdgeAPI(ctx context.Context, teamID, path string, values any, intf interface{}) error {

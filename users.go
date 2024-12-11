@@ -165,6 +165,47 @@ type ClientBootResponse struct {
 	SlackResponse
 }
 
+type ClientUserBootSubteams struct {
+	Self []string `json:"self"`
+}
+
+type ClientUserBootResponse struct {
+	Self User     `json:"self"`
+	Team TeamInfo `json:"team"`
+
+	IsOpen   []string      `json:"is_open"`
+	Channels []BootChannel `json:"channels"`
+	IMs      []BootChannel `json:"ims"`
+
+	Workspaces       []TeamInfo             `json:"workspaces"`
+	SlackRoute       string                 `json:"slack_route"`
+	ChannelsPriority map[string]float64     `json:"channels_priority"`
+	Subteams         ClientUserBootSubteams `json:"subteams"`
+
+	IsEurope          bool `json:"is_europe"`
+	ShouldReload      bool `json:"should_reload"`
+	CanAccessClientV2 bool `json:"can_access_client_v2"`
+
+	EmojiCacheTS        string `json:"emoji_cache_ts"`
+	TranslationsCacheTS string `json:"translations_cache_ts"`
+	AppCommandsCacheTS  string `json:"app_commands_cache_ts"`
+
+	ClientMinVersion        int64 `json:"client_min_version"`
+	RecommendedBuildVersion int64 `json:"recommended_build_version"`
+
+	// Uncertain types
+	//Starred               []string `json:"starred"`
+	//ReadOnlyChannels      []string `json:"read_only_channels"`
+	//NonThreadableChannels []string `json:"non_threadable_channels"`
+	//ThreadOnlyChannels    []string `json:"thread_only_channels"`
+
+	// Only for warm boots
+	UnchangedChannelIDs []string `json:"unchanged_channel_ids"`
+
+	// Other fields: default_workspace, dnd, links, prefs, account_types, accept_tos_url
+	SlackResponse
+}
+
 type UserIdentityResponse struct {
 	User UserIdentity `json:"user"`
 	Team TeamIdentity `json:"team"`
@@ -540,6 +581,48 @@ func (api *Client) ClientBootContext(ctx context.Context) (response *ClientBootR
 
 	if err := response.Err(); err != nil {
 		return nil, err
+	}
+
+	return response, nil
+}
+
+func (api *Client) ClientUserBootContext(ctx context.Context, minUpdated time.Time) (response *ClientUserBootResponse, err error) {
+	values := url.Values{
+		"token":                          {api.token},
+		"version_all_channels":           {"false"},
+		"omit_channels":                  {"false"},
+		"include_min_version_bump_check": {"0"},
+	}
+	xcp := &XClientParams{
+		Reason:  "initial-data",
+		Sonic:   true,
+		AppName: api.versionData.AppName,
+	}
+	if api.versionData != nil {
+		values.Set("version_ts", strconv.FormatInt(api.versionData.VersionTS, 10))
+		values.Set("build_version_ts", strconv.FormatInt(api.versionData.VersionTS, 10))
+		values.Set("build_manifest_last_modified", strconv.FormatInt(api.versionData.BuildManifestLastMod, 10))
+	} else {
+		xcp.AppName = "client"
+	}
+	if !minUpdated.IsZero() {
+		xcp.Reason = "deferred-data"
+		values.Set("min_channel_updated", strconv.FormatInt(minUpdated.UnixMilli(), 10))
+		values.Set("include_min_version_bump_check", "1")
+	}
+	xcp.Set(values)
+
+	response = &ClientUserBootResponse{}
+	err = api.postMethod(ctx, "client.userBoot", values, response)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := response.Err(); err != nil {
+		return nil, err
+	}
+	if api.versionData != nil {
+		api.versionData.SlackRoute = response.SlackRoute
 	}
 
 	return response, nil
