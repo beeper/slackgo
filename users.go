@@ -594,14 +594,14 @@ func (api *Client) ClientUserBootContext(ctx context.Context, minUpdated time.Ti
 		"include_min_version_bump_check": {"0"},
 	}
 	xcp := &XClientParams{
-		Reason:  "initial-data",
-		Sonic:   true,
-		AppName: api.versionData.AppName,
+		Reason: "initial-data",
+		Sonic:  true,
 	}
 	if api.versionData != nil {
-		values.Set("version_ts", strconv.FormatInt(api.versionData.VersionTS, 10))
-		values.Set("build_version_ts", strconv.FormatInt(api.versionData.VersionTS, 10))
-		values.Set("build_manifest_last_modified", strconv.FormatInt(api.versionData.BuildManifestLastMod, 10))
+		xcp.AppName = api.versionData.AppName
+		values.Set("version_ts", api.versionData.VersionTS)
+		values.Set("build_version_ts", api.versionData.BuildVersionTS)
+		values.Set("build_manifest_last_modified", api.versionData.BuildManifestLastModified)
 	} else {
 		xcp.AppName = "client"
 	}
