@@ -167,13 +167,14 @@ func TestRichTextSection_UnmarshalJSON(t *testing.T) {
 		err      error
 	}{
 		{
-			[]byte(`{"elements":[{"type":"unknown","value":10},{"type":"text","text":"hi"},{"type":"date","timestamp":1636961629}]}`),
+			[]byte(`{"elements":[{"type":"unknown","value":10},{"type":"text","text":"hi"},{"type":"date","timestamp":1636961629,"format":"{date_short_pretty}"},{"type":"date","timestamp":1636961629,"format":"{date_short_pretty}","url":"https://example.com","fallback":"default"}]}`),
 			RichTextSection{
 				Type: RTESection,
 				Elements: []RichTextSectionElement{
 					&RichTextSectionUnknownElement{Type: RTSEUnknown, Raw: `{"type":"unknown","value":10}`},
 					&RichTextSectionTextElement{Type: RTSEText, Text: "hi"},
-					&RichTextSectionDateElement{Type: RTSEDate, Timestamp: JSONTime(1636961629)},
+					&RichTextSectionDateElement{Type: RTSEDate, Timestamp: JSONTime(1636961629), Format: "{date_short_pretty}"},
+					&RichTextSectionDateElement{Type: RTSEDate, Timestamp: JSONTime(1636961629), Format: "{date_short_pretty}", URL: strp("https://example.com"), Fallback: strp("default")},
 				},
 			},
 			nil,
@@ -183,6 +184,26 @@ func TestRichTextSection_UnmarshalJSON(t *testing.T) {
 			RichTextSection{
 				Type:     RTESection,
 				Elements: []RichTextSectionElement{},
+			},
+			nil,
+		},
+		{
+			[]byte(`{"type": "rich_text_section","elements":[{"type": "emoji","name": "+1"}]}`),
+			RichTextSection{
+				Type: RTESection,
+				Elements: []RichTextSectionElement{
+					&RichTextSectionEmojiElement{Type: RTSEEmoji, Name: "+1"},
+				},
+			},
+			nil,
+		},
+		{
+			[]byte(`{"type": "rich_text_section","elements":[{"type": "emoji","name": "+1","unicode": "1f44d-1f3fb","skin_tone": 2}]}`),
+			RichTextSection{
+				Type: RTESection,
+				Elements: []RichTextSectionElement{
+					&RichTextSectionEmojiElement{Type: RTSEEmoji, Name: "+1", Unicode: "1f44d-1f3fb", SkinTone: 2},
+				},
 			},
 			nil,
 		},
@@ -288,7 +309,7 @@ func TestRichTextList_UnmarshalJSON(t *testing.T) {
 
 func TestRichTextQuote_Marshal(t *testing.T) {
 	t.Run("rich_text_section", func(t *testing.T) {
-		const rawRSE = "{\"type\":\"rich_text_section\",\"elements\":[{\"type\":\"text\",\"text\":\"Some Text\"}]}"
+		const rawRSE = "{\"type\":\"rich_text_section\",\"elements\":[{\"type\":\"text\",\"text\":\"Some Text\"},{\"type\":\"emoji\",\"name\":\"+1\"},{\"type\":\"emoji\",\"name\":\"+1\",\"skin_tone\":2}]}"
 
 		var got RichTextSection
 		if err := json.Unmarshal([]byte(rawRSE), &got); err != nil {
@@ -298,6 +319,8 @@ func TestRichTextQuote_Marshal(t *testing.T) {
 			Type: RTESection,
 			Elements: []RichTextSectionElement{
 				&RichTextSectionTextElement{Type: RTSEText, Text: "Some Text"},
+				&RichTextSectionEmojiElement{Type: RTSEEmoji, Name: "+1"},
+				&RichTextSectionEmojiElement{Type: RTSEEmoji, Name: "+1", SkinTone: 2},
 			},
 		}
 
@@ -361,3 +384,5 @@ func TestRichTextQuote_Marshal(t *testing.T) {
 		}
 	})
 }
+
+func strp(in string) *string { return &in }
