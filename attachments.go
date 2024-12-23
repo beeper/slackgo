@@ -82,6 +82,8 @@ type Attachment struct {
 	ImageHeight int    `json:"image_height,omitempty"`
 	ImageBytes  int    `json:"image_bytes,omitempty"`
 	ThumbURL    string `json:"thumb_url,omitempty"`
+	ThumbWidth  int    `json:"thumb_width,omitempty"`
+	ThumbHeight int    `json:"thumb_height,omitempty"`
 
 	ServiceName string `json:"service_name,omitempty"`
 	ServiceIcon string `json:"service_icon,omitempty"`
