@@ -169,9 +169,19 @@ type ClientUserBootSubteams struct {
 	Self []string `json:"self"`
 }
 
+type TeamPrefs struct {
+	MsgEditWindowMins    *int  `json:"msg_edit_window_mins,omitempty"`
+	AllowMessageDeletion *bool `json:"allow_message_deletion,omitempty"`
+}
+
+type BootTeam struct {
+	TeamInfo
+	Prefs TeamPrefs
+}
+
 type ClientUserBootResponse struct {
 	Self User     `json:"self"`
-	Team TeamInfo `json:"team"`
+	Team BootTeam `json:"team"`
 
 	IsOpen   []string      `json:"is_open"`
 	Channels []BootChannel `json:"channels"`
