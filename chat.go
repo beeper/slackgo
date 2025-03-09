@@ -35,12 +35,17 @@ type chatResponseFull struct {
 	ScheduledMessageID string `json:"scheduled_message_id,omitempty"` // Scheduled message id
 	Text               string `json:"text"`
 	SlackResponse
+
+	Message *Message `json:"message,omitempty"`
 }
 
 // getMessageTimestamp will inspect the `chatResponseFull` to return a timestamp value
 // in `chat.postMessage` its under `ts`
 // in `chat.postEphemeral` its under `message_ts`
 func (c chatResponseFull) getMessageTimestamp() string {
+	if c.Message != nil && c.Message.Edited != nil && len(c.Message.Edited.Timestamp) > 0 {
+		return c.Message.Edited.Timestamp
+	}
 	if len(c.Timestamp) > 0 {
 		return c.Timestamp
 	}
