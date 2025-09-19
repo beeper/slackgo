@@ -1,6 +1,9 @@
 package slack
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strconv"
+)
 
 // AttachmentField contains information for an attachment field
 // An Attachment can contain multiple of these
@@ -64,7 +67,7 @@ type Attachment struct {
 	Fallback string `json:"fallback,omitempty"`
 
 	CallbackID string `json:"callback_id,omitempty"`
-	ID         int    `json:"id,omitempty"`
+	ID         any    `json:"id,omitempty"`
 
 	AuthorID      string `json:"author_id,omitempty"`
 	AuthorName    string `json:"author_name,omitempty"`
@@ -103,6 +106,26 @@ type Attachment struct {
 	FooterIcon string `json:"footer_icon,omitempty"`
 
 	Ts json.Number `json:"ts,omitempty"`
+}
+
+func (att *Attachment) IDString() string {
+	if att == nil || att.ID == nil {
+		return ""
+	}
+	switch v := att.ID.(type) {
+	case string:
+		return v
+	case float64:
+		return strconv.FormatInt(int64(v), 10)
+	case int:
+		return strconv.FormatInt(int64(v), 10)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case json.Number:
+		return v.String()
+	default:
+		return ""
+	}
 }
 
 // MessageBlocks contains the embedded message in a forwarded attachment
