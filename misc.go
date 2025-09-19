@@ -19,11 +19,165 @@ import (
 	"time"
 )
 
+// Apps Manifest Create Response Errors ("/apps.manifest.create")
+type AppsManifestCreateResponseError struct {
+	Code             string `json:"code,omitempty"`
+	Message          string `json:"message"`
+	Pointer          string `json:"pointer"`
+	RelatedComponent string `json:"related_component,omitempty"`
+}
+
+// Conversations Invite Response Errors ("/conversations.invite")
+type ConversationsInviteResponseError struct {
+	Error string `json:"error"`
+	Ok    bool   `json:"ok"`
+	User  string `json:"user"`
+}
+
+func (t ConversationsInviteResponseError) Err() error {
+	if !t.Ok {
+		return fmt.Errorf("conversations invite error (user: %s): %s", t.User, t.Error)
+	}
+	return nil
+}
+
+// SlackResponseErrors represents a union type for different error structures
+type SlackResponseErrors struct {
+	AppsManifestCreateResponseError  *AppsManifestCreateResponseError  `json:"-"`
+	ConversationsInviteResponseError *ConversationsInviteResponseError `json:"-"`
+	Message                          *string                           `json:"-"`
+}
+
+// MarshalJSON implements custom marshaling for SlackResponseErrors
+func (e SlackResponseErrors) MarshalJSON() ([]byte, error) {
+	if e.AppsManifestCreateResponseError != nil {
+		return json.Marshal(e.AppsManifestCreateResponseError)
+	}
+	if e.ConversationsInviteResponseError != nil {
+		return json.Marshal(e.ConversationsInviteResponseError)
+	}
+	if e.Message != nil {
+		return json.Marshal(*e.Message)
+	}
+	return json.Marshal(nil)
+}
+
+// UnmarshalJSON implements custom unmarshaling for SlackResponseErrors
+func (e *SlackResponseErrors) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, []byte("null")) {
+		return nil
+	}
+
+	// Try to determine the error type by checking for unique fields
+	var raw map[string]interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		// If we can't unmarshal as object, try as string (fallback case)
+		//
+		// For more details on this specific problem look up issue
+		// https://github.com/slack-go/slack/issues/1446.
+		var stringError string
+		if stringErr := json.Unmarshal(data, &stringError); stringErr == nil {
+			e.Message = &stringError
+			return nil
+		}
+		return err
+	}
+
+	if _, hasPointer := raw["pointer"]; hasPointer {
+		if _, hasMessage := raw["message"]; hasMessage {
+			var amc AppsManifestCreateResponseError
+			if err := json.Unmarshal(data, &amc); err != nil {
+				return err
+			}
+			e.AppsManifestCreateResponseError = &amc
+			return nil
+		}
+	}
+
+	if _, hasUser := raw["user"]; hasUser {
+		if _, hasError := raw["error"]; hasError {
+			if _, hasOk := raw["ok"]; hasOk {
+				var ci ConversationsInviteResponseError
+				if err := json.Unmarshal(data, &ci); err != nil {
+					return err
+				}
+				e.ConversationsInviteResponseError = &ci
+				return nil
+			}
+		}
+	}
+
+	return fmt.Errorf("unknown error structure: %s", string(data))
+}
+
 // SlackResponse handles parsing out errors from the web api.
 type SlackResponse struct {
-	Ok               bool             `json:"ok"`
-	Error            string           `json:"error"`
-	ResponseMetadata ResponseMetadata `json:"response_metadata"`
+	Ok               bool                  `json:"ok"`
+	Error            string                `json:"error"`
+	Errors           []SlackResponseErrors `json:"errors,omitempty"`
+	ResponseMetadata ResponseMetadata      `json:"response_metadata"`
+}
+
+// KickUserFromConversationSlackResponse is a variant of SlackResponse that can handle the case where
+// "errors" can be either an empty object {} or an array of errors.
+// This addresses issue #1446 where conversations.kick endpoint returns {"ok":true,"errors":{}}
+type KickUserFromConversationSlackResponse struct {
+	Ok               bool                  `json:"ok"`
+	Error            string                `json:"error"`
+	Errors           []SlackResponseErrors `json:"-"`
+	ResponseMetadata ResponseMetadata      `json:"response_metadata"`
+}
+
+// UnmarshalJSON implements custom unmarshaling for KickUserFromConversationSlackResponse to handle
+// the case where "errors" can be either an empty object {} or an array of errors
+func (s *KickUserFromConversationSlackResponse) UnmarshalJSON(data []byte) error {
+	// First, unmarshal everything except errors
+	type Alias KickUserFromConversationSlackResponse
+	aux := &struct {
+		*Alias
+		ErrorsRaw json.RawMessage `json:"errors,omitempty"`
+	}{
+		Alias: (*Alias)(s),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Handle the errors field
+	if len(aux.ErrorsRaw) > 0 {
+		// Check if it's an empty object by looking for just "{}"
+		trimmed := bytes.TrimSpace(aux.ErrorsRaw)
+		if bytes.Equal(trimmed, []byte("{}")) {
+			// Empty object, leave errors as nil/empty slice
+			s.Errors = nil
+		} else {
+			// Try to unmarshal as array of errors
+			var errors []SlackResponseErrors
+			if err := json.Unmarshal(aux.ErrorsRaw, &errors); err != nil {
+				return err
+			}
+			s.Errors = errors
+		}
+	}
+
+	return nil
+}
+
+// Err returns any API error present in the response.
+func (s KickUserFromConversationSlackResponse) Err() error {
+	if s.Ok {
+		return nil
+	}
+
+	// handle pure text based responses like chat.post
+	// which while they have a slack response in their data structure
+	// it doesn't actually get set during parsing.
+	if strings.TrimSpace(s.Error) == "" {
+		return nil
+	}
+
+	return SlackErrorResponse{Err: s.Error, Errors: s.Errors, ResponseMetadata: s.ResponseMetadata}
 }
 
 func (t SlackResponse) Err() error {
@@ -38,12 +192,13 @@ func (t SlackResponse) Err() error {
 		return nil
 	}
 
-	return SlackErrorResponse{Err: t.Error, ResponseMetadata: t.ResponseMetadata}
+	return SlackErrorResponse{Err: t.Error, Errors: t.Errors, ResponseMetadata: t.ResponseMetadata}
 }
 
 // SlackErrorResponse brings along the metadata of errors returned by the Slack API.
 type SlackErrorResponse struct {
 	Err              string
+	Errors           []SlackResponseErrors
 	ResponseMetadata ResponseMetadata
 }
 
@@ -222,7 +377,7 @@ func createFormFields(mw *multipart.Writer, values url.Values) error {
 	return nil
 }
 
-func doPost(ctx context.Context, client httpClient, req *http.Request, parser responseParser, d Debug) error {
+func doPost(client httpClient, req *http.Request, parser responseParser, d Debug) error {
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -247,7 +402,7 @@ func postJSON(ctx context.Context, client httpClient, endpoint, token string, js
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
-	return doPost(ctx, client, req, newJSONParser(intf), d)
+	return doPost(client, req, newJSONParser(intf), d)
 }
 
 // post a url encoded form.
@@ -259,7 +414,7 @@ func postForm(ctx context.Context, client httpClient, endpoint string, values ur
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	addCookies(req, cookies)
-	return doPost(ctx, client, req, newJSONParser(intf), d)
+	return doPost(client, req, newJSONParser(intf), d)
 }
 
 // post a url encoded form.
@@ -275,7 +430,7 @@ func postJSONAlt(ctx context.Context, client httpClient, endpoint string, values
 	}
 	req.Header.Set("Content-Type", "text/plain;charset=UTF-8")
 	addCookies(req, cookies)
-	return doPost(ctx, client, req, newJSONParser(intf), d)
+	return doPost(client, req, newJSONParser(intf), d)
 }
 
 func getResource(ctx context.Context, client httpClient, endpoint, token string, values url.Values, intf interface{}, d Debug) error {
@@ -288,7 +443,7 @@ func getResource(ctx context.Context, client httpClient, endpoint, token string,
 
 	req.URL.RawQuery = values.Encode()
 
-	return doPost(ctx, client, req, newJSONParser(intf), d)
+	return doPost(client, req, newJSONParser(intf), d)
 }
 
 func parseAdminResponse(ctx context.Context, client httpClient, method string, teamName string, values url.Values, intf interface{}, d Debug, cookies []*http.Cookie) error {
@@ -316,16 +471,8 @@ func okJSONHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Write(response)
 }
 
-// timerReset safely reset a timer, see time.Timer.Reset for details.
-func timerReset(t *time.Timer, d time.Duration) {
-	if !t.Stop() {
-		<-t.C
-	}
-	t.Reset(d)
-}
-
 func checkStatusCode(resp *http.Response, d Debug) error {
-	if resp.StatusCode == http.StatusTooManyRequests {
+	if resp.StatusCode == http.StatusTooManyRequests && resp.Header.Get("Retry-After") != "" {
 		retry, err := strconv.ParseInt(resp.Header.Get("Retry-After"), 10, 64)
 		if err != nil {
 			return fmt.Errorf("failed to parse retry-after header: %w", err)
@@ -355,6 +502,10 @@ func newJSONParser(dst interface{}) responseParser {
 
 func newTextParser(dst interface{}) responseParser {
 	return func(resp *http.Response) error {
+		if dst == nil {
+			return nil
+		}
+
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err

@@ -330,8 +330,8 @@ func TestGetUploadURLExternalContext(t *testing.T) {
 			params: GetUploadURLExternalParameters{
 				FileSize:    10,
 				FileName:    "test.txt",
-				AltText:     "test-alt-text",
-				SnippetText: "test-snippet-text",
+				AltTxt:      "test-alt-text",
+				SnippetType: "test-snippet-type",
 			},
 			wantSlackResponse: []byte(`{"ok":true,"file_id":"RandomID","upload_url":"http://test-server/abc"}`),
 			wantResponse: GetUploadURLExternalResponse{
@@ -463,6 +463,39 @@ func TestCompleteUploadExternalContext(t *testing.T) {
 				Channel:         "test-channel",
 				InitialComment:  "test-comment",
 				ThreadTimestamp: "1234567890.123456",
+			},
+			wantResponse: CompleteUploadExternalResponse{
+				Files: []FileSummary{
+					{
+						ID: "ID1",
+					},
+					{
+						ID:    "ID2",
+						Title: "Title2",
+					},
+				},
+				SlackResponse: SlackResponse{Ok: true},
+			},
+		},
+		{
+			title: "Testing with blocks",
+			params: CompleteUploadExternalParameters{
+				Files: []FileSummary{
+					{
+						ID: "ID1",
+					},
+					{
+						ID:    "ID2",
+						Title: "Title2",
+					},
+				},
+				Channel:         "test-channel",
+				ThreadTimestamp: "1234567890.123456",
+				Blocks: Blocks{BlockSet: []Block{
+					NewSectionBlock(
+						NewTextBlockObject("plain_text", "This is a section block", false, false), nil, nil),
+				},
+				},
 			},
 			wantResponse: CompleteUploadExternalResponse{
 				Files: []FileSummary{

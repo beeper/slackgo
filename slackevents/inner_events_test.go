@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/slack-go/slack"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,9 +16,9 @@ func TestAssistantThreadStartedEvent(t *testing.T) {
 			"type": "assistant_thread_started",
 			"assistant_thread": {
 				"user_id": "U123ABC456",
-				"context": { 
-					"channel_id": "C123ABC456", 
-					"team_id": "T07XY8FPJ5C", 
+				"context": {
+					"channel_id": "C123ABC456",
+					"team_id": "T07XY8FPJ5C",
 					"enterprise_id": "E480293PS82"
 					},
 				"channel_id": "D123ABC456",
@@ -42,9 +43,9 @@ func TestAssistantThreadContextChangedEvent(t *testing.T) {
 			"type": "assistant_thread_context_changed",
 			"assistant_thread": {
 				"user_id": "U123ABC456",
-				"context": { 
-					"channel_id": "C123ABC456", 
-					"team_id": "T07XY8FPJ5C", 
+				"context": {
+					"channel_id": "C123ABC456",
+					"team_id": "T07XY8FPJ5C",
 					"enterprise_id": "E480293PS82"
 					},
 				"channel_id": "D123ABC456",
@@ -79,6 +80,38 @@ func TestAppMention(t *testing.T) {
 	err := json.Unmarshal(rawE, &AppMentionEvent{})
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestAppMentionWithAssistantThread(t *testing.T) {
+	rawE := []byte(`
+			{
+				"type": "app_mention",
+				"user": "U061F7AUR",
+				"text": "<@U0LAN0Z89> is it everything a river should be?",
+				"ts": "1515449522.000016",
+				"thread_ts": "1515449522.000016",
+				"channel": "C0LAN2Q65",
+				"event_ts": "1515449522000016",
+				"source_team": "T3MQV36V7",
+				"user_team": "T3MQV36V7",
+				"assistant_thread": {
+					"action_token": "1234567.abcdefg"
+				}
+		}
+	`)
+	var event AppMentionEvent
+	err := json.Unmarshal(rawE, &event)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if event.AssistantThread == nil {
+		t.Error("Expected AssistantThread to be non-nil")
+	}
+
+	if event.AssistantThread.ActionToken != "1234567.abcdefg" {
+		t.Errorf("Expected ActionToken to be '1234567.abcdefg', got %s", event.AssistantThread.ActionToken)
 	}
 }
 
@@ -346,27 +379,109 @@ func TestMessageEvent(t *testing.T) {
 				"channel_type": "channel",
 				"source_team": "T3MQV36V7",
 				"user_team": "T3MQV36V7",
-				"message": {
-					"text": "To infinity and beyond.",
-					"edited": {
-						"user": "U2147483697",
-						"ts": "1355517524.000000"
-					}
-				},
 				"metadata": {
 					"event_type": "example",
 					"event_payload": {
 						"key": "value"
 					}
-				},
-				"previous_message": {
-					"text": "Live long and prospect."
 				}
 		}
 	`)
-	err := json.Unmarshal(rawE, &MessageEvent{})
+	var e MessageEvent
+	err := json.Unmarshal(rawE, &e)
 	if err != nil {
 		t.Error(err)
+	}
+
+	if e.Channel != "G024BE91L" {
+		t.Error(fmt.Errorf("expected channel G024BE91L, got %s", e.Channel))
+	}
+	if e.User != "U2147483697" {
+		t.Error(fmt.Errorf("expected user U2147483697, got %s", e.User))
+	}
+	if e.Text != "Live long and prospect." {
+		t.Error(fmt.Errorf("expected e.Text Live long and prospect., got %s", e.Text))
+	}
+	if e.Message.Text != "Live long and prospect." {
+		t.Error(fmt.Errorf("expected e.Message.Text Live long and prospect., got %s", e.Message.Text))
+	}
+
+}
+
+func TestMessageEventWithAssistantThread(t *testing.T) {
+	rawE := []byte(`
+			{
+				"client_msg_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+				"type": "message",
+				"channel": "D024BE91L",
+				"user": "U2147483697",
+				"text": "Hello, I need help with something.",
+				"ts": "1355517523.000005",
+				"event_ts": "1355517523.000005",
+				"channel_type": "im",
+				"assistant_thread": {
+					"action_token": "9876543.hijklmnop"
+				}
+		}
+	`)
+	var e MessageEvent
+	err := json.Unmarshal(rawE, &e)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if e.Channel != "D024BE91L" {
+		t.Error(fmt.Errorf("expected channel D024BE91L, got %s", e.Channel))
+	}
+	if e.User != "U2147483697" {
+		t.Error(fmt.Errorf("expected user U2147483697, got %s", e.User))
+	}
+	if e.Text != "Hello, I need help with something." {
+		t.Error(fmt.Errorf("expected e.Text Hello, I need help with something., got %s", e.Text))
+	}
+	if e.AssistantThread == nil {
+		t.Error("Expected AssistantThread to be non-nil")
+	}
+	if e.AssistantThread.ActionToken != "9876543.hijklmnop" {
+		t.Errorf("Expected ActionToken to be '9876543.hijklmnop', got %s", e.AssistantThread.ActionToken)
+	}
+}
+
+func TestMessageChangedEvent(t *testing.T) {
+	rawE := []byte(`
+		{
+			"type": "message",
+			"subtype": "message_changed",
+			"hidden": true,
+			"channel": "G024BE91L",
+			"ts": "1358878755.000001",
+			"message": {
+				"type": "message",
+				"user": "U123ABC456",
+				"text": "Live long and prospect.",
+				"ts": "1355517523.000005",
+				"edited": {
+					"user": "U123ABC456",
+					"ts": "1358878755.000001"
+				}
+			}
+		}
+	`)
+
+	var e MessageEvent
+	err := json.Unmarshal(rawE, &e)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if e.Channel != "G024BE91L" {
+		t.Error(fmt.Errorf("expected channel G024BE91L, got %s", e.Channel))
+	}
+	if e.Message.Text != "Live long and prospect." {
+		t.Error(fmt.Errorf("expected e.Message.Text Live long and prospect., got %s", e.Message.Text))
+	}
+	if e.Message.Edited.User != "U123ABC456" {
+		t.Error(fmt.Errorf("expected e.Message.Edited.User U123ABC456, got %s", e.Message.Edited.User))
 	}
 }
 
@@ -393,29 +508,65 @@ func TestThreadBroadcastEvent(t *testing.T) {
 			{
 				"type": "message",
 				"subtype": "thread_broadcast",
-				"channel": "G024BE91L",
-				"user": "U2147483697",
-				"text": "Live long and prospect.",
-				"ts": "1355517523.000005",
-				"event_ts": "1355517523.000005",
-				"channel_type": "channel",
-				"source_team": "T3MQV36V7",
-				"user_team": "T3MQV36V7",
-				"message": {
-					"text": "To infinity and beyond.",
-					"root": {
-						"text": "To infinity and beyond.",
-						"ts": "1355517523.000005"
-					},
-					"edited": {
-						"user": "U2147483697",
-						"ts": "1355517524.000000"
-					}
+				"text": "broadcasting this reply",
+				"user": "U123ABC456",
+				"ts": "1673464745.620769",
+				"thread_ts": "1673464730.703009",
+				"root": {
+					"client_msg_id": "123abc456-...",
+					"type": "message",
+					"text": "This is the original message",
+					"user": "U123ABC456",
+					"ts": "1673464730.703009",
+					"blocks": [
+						{
+							"type": "rich_text",
+							"block_id": "qTg",
+							"elements": [
+								{
+									"type": "rich_text_section",
+									"elements": [
+										{
+											"type": "text",
+											"text": "This is the original message"
+										}
+									]
+								}
+							]
+						}
+					],
+					"team": "T123ABC456",
+					"thread_ts": "1673464730.703009",
+					"reply_count": 1,
+					"reply_users_count": 1,
+					"latest_reply": "1673464745.620769",
+					"reply_users": [
+						"U123ABC456"
+					],
+					"is_locked": false
 				},
-				"previous_message": {
-					"text": "Live long and prospect."
-				}
-		}
+				"blocks": [
+					{
+						"type": "rich_text",
+						"block_id": "BVp",
+						"elements": [
+							{
+								"type": "rich_text_section",
+								"elements": [
+									{
+										"type": "text",
+										"text": "broadcasting this reply"
+									}
+								]
+							}
+						]
+					}
+				],
+				"client_msg_id": "123abc456-...",
+				"channel": "C123ABC456",
+				"event_ts": "1673464745.620769",
+				"channel_type": "channel"
+			}
 	`)
 
 	var me MessageEvent
@@ -423,16 +574,8 @@ func TestThreadBroadcastEvent(t *testing.T) {
 		t.Error(err)
 	}
 
-	if me.Root != nil {
-		t.Error("me.Root should be nil")
-	}
-
-	if me.Message.Root == nil {
-		t.Fatal("me.Message.Root is nil")
-	}
-
-	if me.Message.Root.TimeStamp != "1355517523.000005" {
-		t.Errorf("me.Message.Root.TimeStamp = %q, want %q", me.Root.TimeStamp, "1355517523.000005")
+	if me.Root.Timestamp != "1673464730.703009" {
+		t.Errorf("me.Root.Timestamp = %q, want %q", me.Root.Timestamp, "1673464730.703009")
 	}
 }
 
@@ -654,10 +797,10 @@ func TestMessageMetadataPosted(t *testing.T) {
 	{
 		"type":"message_metadata_posted",
 		"app_id":"APPXXX",
-		"bot_id":"BOTXXX",	
-		"user_id":"USERXXX",	
-		"team_id":"TEAMXXX",	
-		"channel_id":"CHANNELXXX",	
+		"bot_id":"BOTXXX",
+		"user_id":"USERXXX",
+		"team_id":"TEAMXXX",
+		"channel_id":"CHANNELXXX",
 		"metadata":{
 			"event_type":"type",
 			"event_payload":{"key": "value"}
@@ -710,16 +853,16 @@ func TestMessageMetadataUpdated(t *testing.T) {
 	rawE := []byte(`
 	{
 		"type":"message_metadata_updated",
-		"channel_id":"CHANNELXXX",	
+		"channel_id":"CHANNELXXX",
 		"event_ts":"1660398079.756349",
 		"previous_metadata":{
 			"event_type":"type1",
 			"event_payload":{"key1": "value1"}
 		},
 		"app_id":"APPXXX",
-		"bot_id":"BOTXXX",	
-		"user_id":"USERXXX",	
-		"team_id":"TEAMXXX",	
+		"bot_id":"BOTXXX",
+		"user_id":"USERXXX",
+		"team_id":"TEAMXXX",
 		"message_ts":"1660398079.756349",
 		"metadata":{
 			"event_type":"type2",
@@ -778,16 +921,16 @@ func TestMessageMetadataDeleted(t *testing.T) {
 	rawE := []byte(`
 	{
 		"type":"message_metadata_deleted",
-		"channel_id":"CHANNELXXX",	
+		"channel_id":"CHANNELXXX",
 		"event_ts":"1660398079.756349",
 		"previous_metadata":{
 			"event_type":"type",
 			"event_payload":{"key": "value"}
 		},
 		"app_id":"APPXXX",
-		"bot_id":"BOTXXX",	
-		"user_id":"USERXXX",	
-		"team_id":"TEAMXXX",	
+		"bot_id":"BOTXXX",
+		"user_id":"USERXXX",
+		"team_id":"TEAMXXX",
 		"message_ts":"1660398079.756349",
 		"deleted_ts":"1660398079.756349"
 	}
@@ -1897,9 +2040,9 @@ func TestSubteamMembersChangedEvent(t *testing.T) {
 			"date_previous_update": 1446670362,
 			"date_update": 1624473600,
 			"added_users": ["U1234567890"],
-			"added_users_count": "3",
+			"added_users_count": 3,
 			"removed_users": ["U0987654321"],
-			"removed_users_count": "1"
+			"removed_users_count": 1
 		}
 	`)
 
@@ -2430,6 +2573,37 @@ func TestChannelSharedEvent(t *testing.T) {
 	}
 }
 
+func TestChannelUnsharedEvent(t *testing.T) {
+	jsonStr := `{
+		"type": "channel_unshared",
+		"previously_connected_team_id": "E163Q94DX",
+		"channel": "C123ABC456",
+        "is_ext_shared": false,
+		"event_ts": "1561064063.001100"
+	}`
+
+	var event ChannelUnsharedEvent
+	if err := json.Unmarshal([]byte(jsonStr), &event); err != nil {
+		t.Errorf("Failed to unmarshal ChannelUnsharedEvent: %v", err)
+	}
+
+	if event.Type != "channel_unshared" {
+		t.Errorf("Expected type to be 'channel_unshared', got %s", event.Type)
+	}
+
+	if event.PreviouslyConnectedTeamID != "E163Q94DX" {
+		t.Errorf("Expected previously_connected_team_id to be 'E163Q94DX', got %s", event.PreviouslyConnectedTeamID)
+	}
+
+	if event.IsExtShared {
+		t.Errorf("Expected is_ext_shared to be false, got %t", event.IsExtShared)
+	}
+
+	if event.Channel != "C123ABC456" {
+		t.Fail()
+	}
+}
+
 func TestFileCreatedEvent(t *testing.T) {
 	jsonStr := `{
 		"type": "file_created",
@@ -2699,4 +2873,185 @@ func TestSharedChannelInviteRequested_UnmarshalJSON(t *testing.T) {
 	if len(event.TeamsInChannel) != 2 || event.TeamsInChannel[1].Name != "another_enterprise" {
 		t.Errorf("Expected second team to have name 'another_enterprise', got '%v'", event.TeamsInChannel)
 	}
+}
+
+func TestAppHomeOpenedEvent_WithView(t *testing.T) {
+	eventJSON := []byte(`{
+		"type": "app_home_opened",
+		"user": "U12345678",
+		"channel": "D12345678",
+		"tab": "home",
+		"event_ts": "1747319568.267214",
+		"view": {
+			"id": "V12345678",
+			"team_id": "T12345678",
+			"type": "home",
+			"blocks": [],
+			"private_metadata": "",
+			"callback_id": "",
+			"state": {
+				"values": {}
+			},
+			"hash": "1234567890.abcdef",
+			"title": {
+				"type": "plain_text",
+				"text": "App Home"
+			},
+			"clear_on_close": false,
+			"notify_on_close": false,
+			"close": null,
+			"submit": null,
+			"previous_view_id": "",
+			"root_view_id": "V12345678",
+			"app_id": "A12345678",
+			"external_id": "",
+			"app_installed_team_id": "T12345678",
+			"bot_id": "B12345678"
+		}
+	}`)
+
+	var event AppHomeOpenedEvent
+	err := json.Unmarshal(eventJSON, &event)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "app_home_opened", event.Type)
+	assert.Equal(t, "U12345678", event.User)
+	assert.Equal(t, "D12345678", event.Channel)
+	assert.Equal(t, "home", event.Tab)
+	assert.Equal(t, "1747319568.267214", event.EventTimeStamp)
+	assert.NotNil(t, event.View)
+	assert.Equal(t, "V12345678", event.View.ID)
+	assert.Equal(t, "T12345678", event.View.TeamID)
+	assert.Equal(t, slack.ViewType("home"), event.View.Type)
+}
+
+func TestAppHomeOpenedEvent_WithoutView(t *testing.T) {
+	eventJSON := []byte(`{
+		"type": "app_home_opened",
+		"user": "U12345678",
+		"channel": "D12345678",
+		"tab": "home",
+		"event_ts": "1747319568.267214"
+	}`)
+
+	var event AppHomeOpenedEvent
+	err := json.Unmarshal(eventJSON, &event)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "app_home_opened", event.Type)
+	assert.Equal(t, "U12345678", event.User)
+	assert.Equal(t, "D12345678", event.Channel)
+	assert.Equal(t, "home", event.Tab)
+	assert.Equal(t, "1747319568.267214", event.EventTimeStamp)
+	assert.Nil(t, event.View)
+}
+
+func TestAppHomeOpenedEvent_FullEventParsing_WithView(t *testing.T) {
+	fullEventJSON := []byte(`{
+		"token": "verification-token",
+		"team_id": "T12345678",
+		"api_app_id": "A12345678",
+		"event": {
+			"type": "app_home_opened",
+			"user": "U12345678",
+			"channel": "D12345678",
+			"tab": "home",
+			"event_ts": "1747319568.267214",
+			"view": {
+				"id": "V12345678",
+				"team_id": "T12345678",
+				"type": "home",
+				"blocks": [],
+				"private_metadata": "",
+				"callback_id": "",
+				"state": {
+					"values": {}
+				},
+				"hash": "1234567890.abcdef",
+				"title": {
+					"type": "plain_text",
+					"text": "App Home"
+				},
+				"clear_on_close": false,
+				"notify_on_close": false,
+				"close": null,
+				"submit": null,
+				"previous_view_id": "",
+				"root_view_id": "V12345678",
+				"app_id": "A12345678",
+				"external_id": "",
+				"app_installed_team_id": "T12345678",
+				"bot_id": "B12345678"
+			}
+		},
+		"type": "event_callback",
+		"event_id": "Ev12345678",
+		"event_time": 1747319568,
+		"authorizations": [{
+			"enterprise_id": null,
+			"team_id": "T12345678",
+			"user_id": "U12345678",
+			"is_bot": true,
+			"is_enterprise_install": false
+		}],
+		"is_ext_shared_channel": false
+	}`)
+
+	parsedEvent, err := ParseEvent(fullEventJSON, OptionNoVerifyToken())
+
+	assert.NoError(t, err)
+	assert.Equal(t, "T12345678", parsedEvent.TeamID)
+	assert.Equal(t, "A12345678", parsedEvent.APIAppID)
+	assert.Equal(t, "app_home_opened", parsedEvent.InnerEvent.Type)
+	appHomeEvent, ok := parsedEvent.InnerEvent.Data.(*AppHomeOpenedEvent)
+	assert.True(t, ok)
+	assert.Equal(t, "app_home_opened", appHomeEvent.Type)
+	assert.Equal(t, "U12345678", appHomeEvent.User)
+	assert.Equal(t, "D12345678", appHomeEvent.Channel)
+	assert.Equal(t, "home", appHomeEvent.Tab)
+	assert.Equal(t, "1747319568.267214", appHomeEvent.EventTimeStamp)
+	assert.NotNil(t, appHomeEvent.View)
+	assert.Equal(t, "V12345678", appHomeEvent.View.ID)
+	assert.Equal(t, "T12345678", appHomeEvent.View.TeamID)
+}
+
+func TestAppHomeOpenedEvent_FullEventParsing_WithoutView(t *testing.T) {
+	fullEventJSON := []byte(`{
+		"token": "verification-token",
+		"team_id": "T12345678",
+		"api_app_id": "A12345678",
+		"event": {
+			"type": "app_home_opened",
+			"user": "U12345678",
+			"channel": "D12345678",
+			"tab": "home",
+			"event_ts": "1747319568.267214"
+		},
+		"type": "event_callback",
+		"event_id": "Ev12345678",
+		"event_time": 1747319568,
+		"authorizations": [{
+			"enterprise_id": null,
+			"team_id": "T12345678",
+			"user_id": "U12345678",
+			"is_bot": true,
+			"is_enterprise_install": false
+		}],
+		"is_ext_shared_channel": false
+	}`)
+
+	parsedEvent, err := ParseEvent(fullEventJSON, OptionNoVerifyToken())
+
+	assert.NoError(t, err)
+	assert.Equal(t, "T12345678", parsedEvent.TeamID)
+	assert.Equal(t, "A12345678", parsedEvent.APIAppID)
+	assert.Equal(t, "app_home_opened", parsedEvent.InnerEvent.Type)
+	appHomeEvent, ok := parsedEvent.InnerEvent.Data.(*AppHomeOpenedEvent)
+	assert.True(t, ok)
+	assert.Equal(t, "app_home_opened", appHomeEvent.Type)
+	assert.Equal(t, "U12345678", appHomeEvent.User)
+	assert.Equal(t, "D12345678", appHomeEvent.Channel)
+	assert.Equal(t, "home", appHomeEvent.Tab)
+	assert.Equal(t, "1747319568.267214", appHomeEvent.EventTimeStamp)
+	assert.Nil(t, appHomeEvent.View)
 }

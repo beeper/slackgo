@@ -117,9 +117,10 @@ func (s UnknownBlockElement) ElementType() MessageElementType {
 //
 // More Information: https://api.slack.com/reference/messaging/block-elements#image
 type ImageBlockElement struct {
-	Type     MessageElementType `json:"type"`
-	ImageURL string             `json:"image_url"`
-	AltText  string             `json:"alt_text"`
+	Type      MessageElementType `json:"type"`
+	ImageURL  string             `json:"image_url"`
+	AltText   string             `json:"alt_text"`
+	SlackFile *SlackFileObject   `json:"slack_file,omitempty"`
 }
 
 // ElementType returns the type of the Element
@@ -137,6 +138,16 @@ func NewImageBlockElement(imageURL, altText string) *ImageBlockElement {
 		Type:     METImage,
 		ImageURL: imageURL,
 		AltText:  altText,
+	}
+}
+
+// NewImageBlockElementSlackFile returns a new instance of an image block element
+// TODO: BREAKING CHANGE - This should be combined with the function above
+func NewImageBlockElementSlackFile(slackFile *SlackFileObject, altText string) *ImageBlockElement {
+	return &ImageBlockElement{
+		Type:      METImage,
+		SlackFile: slackFile,
+		AltText:   altText,
 	}
 }
 
@@ -468,6 +479,7 @@ type TimePickerBlockElement struct {
 	Placeholder *TextBlockObject         `json:"placeholder,omitempty"`
 	InitialTime string                   `json:"initial_time,omitempty"`
 	Confirm     *ConfirmationBlockObject `json:"confirm,omitempty"`
+	Timezone    string                   `json:"timezone,omitempty"`
 }
 
 // ElementType returns the type of the Element
@@ -491,6 +503,7 @@ type DateTimePickerBlockElement struct {
 	ActionID        string                   `json:"action_id,omitempty"`
 	InitialDateTime int64                    `json:"initial_date_time,omitempty"`
 	Confirm         *ConfirmationBlockObject `json:"confirm,omitempty"`
+	FocusOnLoad     bool                     `json:"focus_on_load,omitempty"`
 }
 
 // ElementType returns the type of the Element

@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Conversation is the foundation for IM and BaseGroupConversation
@@ -38,9 +39,8 @@ type Conversation struct {
 	InternalTeamIDs    []string `json:"internal_team_ids,omitempty"`
 	ContextTeamID      string   `json:"context_team_id,omitempty"`
 	ConversationHostID string   `json:"conversation_host_id,omitempty"`
-
-	// TODO support pending_shared
-	// TODO support previous_names
+	PreviousNames      []string `json:"previous_names,omitempty"`
+	PendingShared      []string `json:"pending_shared,omitempty"`
 }
 
 // GroupConversation is the foundation for Group and Channel
@@ -70,7 +70,21 @@ type Purpose struct {
 
 // Properties contains the Canvas associated to the channel.
 type Properties struct {
-	Canvas Canvas `json:"canvas"`
+	Canvas              Canvas       `json:"canvas"`
+	PostingRestrictedTo RestrictedTo `json:"posting_restricted_to"`
+	Tabs                []Tab        `json:"tabs"`
+	ThreadsRestrictedTo RestrictedTo `json:"threads_restricted_to"`
+}
+
+type RestrictedTo struct {
+	Type []string `json:"type"`
+	User []string `json:"user"`
+}
+
+type Tab struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	Type  string `json:"type"`
 }
 
 type Canvas struct {
@@ -331,6 +345,44 @@ func (api *Client) InviteUsersToConversationContext(ctx context.Context, channel
 	return response.Channel, response.Err()
 }
 
+// The following functions are for inviting users to a channel but setting the `force`
+// parameter to true. We have added this so that we don't break the existing API.
+//
+// IMPORTANT: If we ever get here for _another_ parameter, we should consider refactoring
+// this to be more flexible.
+//
+// ForceInviteUsersToConversation invites users to a channel but sets the `force`
+// parameter to true.
+//
+// For more details, see ForceInviteUsersToConversationContext documentation.
+func (api *Client) ForceInviteUsersToConversation(channelID string, users ...string) (*Channel, error) {
+	return api.ForceInviteUsersToConversationContext(context.Background(), channelID, users...)
+}
+
+// ForceInviteUsersToConversationContext invites users to a channel with a custom context
+// while setting the `force` argument to true.
+//
+// Slack API docs: https://api.slack.com/methods/conversations.invite
+func (api *Client) ForceInviteUsersToConversationContext(ctx context.Context, channelID string, users ...string) (*Channel, error) {
+	values := url.Values{
+		"token":   {api.token},
+		"channel": {channelID},
+		"users":   {strings.Join(users, ",")},
+		"force":   {"true"},
+	}
+	response := struct {
+		SlackResponse
+		Channel *Channel `json:"channel"`
+	}{}
+
+	err := api.postMethod(ctx, "conversations.invite", values, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Channel, response.Err()
+}
+
 // InviteSharedEmailsToConversation invites users to a shared channels by email.
 // For more details, see InviteSharedToConversationContext documentation.
 func (api *Client) InviteSharedEmailsToConversation(channelID string, emails ...string) (string, bool, error) {
@@ -427,7 +479,7 @@ func (api *Client) KickUserFromConversationContext(ctx context.Context, channelI
 		"user":    {user},
 	}
 
-	response := SlackResponse{}
+	response := KickUserFromConversationSlackResponse{}
 	err := api.postMethod(ctx, "conversations.kick", values, &response)
 	if err != nil {
 		return err
@@ -605,6 +657,150 @@ type GetConversationsParameters struct {
 	Limit           int
 	Types           []string
 	TeamID          string
+}
+
+// GetConversationsOption options for the GetAllConversationsContext method call.
+type GetConversationsOption func(*ConversationPagination)
+
+// GetConversationsOptionLimit limit the number of conversations returned
+func GetConversationsOptionLimit(n int) GetConversationsOption {
+	return func(p *ConversationPagination) {
+		p.limit = n
+	}
+}
+
+// GetConversationsOptionExcludeArchived exclude archived conversations
+func GetConversationsOptionExcludeArchived(exclude bool) GetConversationsOption {
+	return func(p *ConversationPagination) {
+		p.excludeArchived = exclude
+	}
+}
+
+// GetConversationsOptionTypes filter conversations by type
+func GetConversationsOptionTypes(types []string) GetConversationsOption {
+	return func(p *ConversationPagination) {
+		p.types = types
+	}
+}
+
+// GetConversationsOptionTeamID include team Id
+func GetConversationsOptionTeamID(teamId string) GetConversationsOption {
+	return func(p *ConversationPagination) {
+		p.teamId = teamId
+	}
+}
+
+func newConversationPagination(c *Client, options ...GetConversationsOption) (cp ConversationPagination) {
+	cp = ConversationPagination{
+		c:     c,
+		limit: 200, // per slack api documentation.
+	}
+
+	for _, opt := range options {
+		opt(&cp)
+	}
+
+	return cp
+}
+
+// ConversationPagination allows for paginating over the conversations
+type ConversationPagination struct {
+	Conversations   []Channel
+	limit           int
+	excludeArchived bool
+	types           []string
+	teamId          string
+	previousResp    *ResponseMetadata
+	c               *Client
+}
+
+// Done checks if the pagination has completed
+func (ConversationPagination) Done(err error) bool {
+	return errors.Is(err, errPaginationComplete)
+}
+
+// Failure checks if pagination failed.
+func (t ConversationPagination) Failure(err error) error {
+	if t.Done(err) {
+		return nil
+	}
+
+	return err
+}
+
+func (t ConversationPagination) Next(ctx context.Context) (_ ConversationPagination, err error) {
+	if t.c == nil || (t.previousResp != nil && t.previousResp.Cursor == "") {
+		return t, errPaginationComplete
+	}
+
+	t.previousResp = t.previousResp.initialize()
+
+	values := url.Values{
+		"token":  {t.c.token},
+		"limit":  {strconv.Itoa(t.limit)},
+		"cursor": {t.previousResp.Cursor},
+	}
+	if t.excludeArchived {
+		values.Add("exclude_archived", strconv.FormatBool(t.excludeArchived))
+	}
+	if t.types != nil {
+		values.Add("types", strings.Join(t.types, ","))
+	}
+	if t.teamId != "" {
+		values.Add("team_id", t.teamId)
+	}
+
+	response := struct {
+		Channels         []Channel        `json:"channels"`
+		ResponseMetaData responseMetaData `json:"response_metadata"`
+		SlackResponse
+	}{}
+
+	err = t.c.postMethod(ctx, "conversations.list", values, &response)
+	if err != nil {
+		return t, err
+	}
+
+	if err := response.Err(); err != nil {
+		return t, err
+	}
+
+	t.c.Debugf("GetAllConversationsContext: got %d conversations; cursor %s", len(response.Channels), response.ResponseMetaData.NextCursor)
+	t.Conversations = response.Channels
+	t.previousResp = &ResponseMetadata{Cursor: response.ResponseMetaData.NextCursor}
+
+	return t, nil
+}
+
+// GetConversationsPaginated fetches conversations in a paginated fashion, see GetAllConversationsContext for usage.
+func (api *Client) GetConversationsPaginated(options ...GetConversationsOption) ConversationPagination {
+	return newConversationPagination(api, options...)
+}
+
+// GetAllConversations returns the list of all conversations, handling pagination and rate limiting
+func (api *Client) GetAllConversations(options ...GetConversationsOption) (results []Channel, err error) {
+	return api.GetAllConversationsContext(context.Background(), options...)
+}
+
+// GetAllConversationsContext returns the list of all conversations with a custom context, handling pagination and rate limiting
+func (api *Client) GetAllConversationsContext(ctx context.Context, options ...GetConversationsOption) (results []Channel, err error) {
+	results = []Channel{}
+	p := api.GetConversationsPaginated(options...)
+	for err == nil {
+		p, err = p.Next(ctx)
+		if err == nil {
+			results = append(results, p.Conversations...)
+		} else if rateLimitedError, ok := err.(*RateLimitedError); ok {
+			select {
+			case <-ctx.Done():
+				err = ctx.Err()
+			case <-time.After(rateLimitedError.RetryAfter):
+				err = nil
+			}
+		}
+	}
+
+	return results, p.Failure(err)
 }
 
 // GetConversations returns the list of channels in a Slack team.
