@@ -63,6 +63,15 @@ func (rtm *RTM) ManageConnection() {
 	)
 
 	for connectionCount := 0; ; connectionCount++ {
+		if connectionCount > 20 {
+			rtm.Debugf("Over 20 reconnections in a short period, something is probably wrong")
+			rtm.IncomingEvents <- RTMEvent{"fatal_connection_error", &FatalConnectionErrorEvent{}}
+			return
+		} else if connectionCount > 0 {
+			sleepTime := time.Duration(connectionCount) * 2 * time.Second
+			rtm.Debugf("Waiting %s before reconnecting", sleepTime)
+			time.Sleep(sleepTime)
+		}
 		// start trying to connect
 		// the returned err is already passed onto the IncomingEvents channel
 		if info, conn, err = rtm.connect(connectionCount, rtm.useRTMStart); err != nil {
@@ -71,6 +80,12 @@ func (rtm *RTM) ManageConnection() {
 			rtm.disconnect()
 			return
 		}
+		select {
+		case <-rtm.killChannel:
+			// Ensure there's nothing buffered in the kill channel
+		default:
+		}
+		connStart := time.Now()
 
 		// lock to prevent data races with Disconnect particularly around isConnected
 		// and conn.
@@ -88,9 +103,13 @@ func (rtm *RTM) ManageConnection() {
 
 		rawEvents := make(chan json.RawMessage)
 		// we're now connected so we can set up listeners
-		go rtm.handleIncomingEvents(rawEvents)
+		go rtm.handleIncomingEvents(rawEvents, conn)
 		// this should be a blocking call until the connection has ended
 		rtm.handleEvents(rawEvents)
+
+		if time.Since(connStart) > 1*time.Minute {
+			connectionCount = 0
+		}
 
 		select {
 		case <-rtm.disconnected:
@@ -323,9 +342,9 @@ func (rtm *RTM) handleEvents(events chan json.RawMessage) {
 //
 // This will stop executing once the RTM's when a fatal error is detected, or
 // a disconnect occurs.
-func (rtm *RTM) handleIncomingEvents(events chan json.RawMessage) {
+func (rtm *RTM) handleIncomingEvents(events chan json.RawMessage, conn *websocket.Conn) {
 	for {
-		if err := rtm.receiveIncomingEvent(events); err != nil {
+		if err := rtm.receiveIncomingEvent(events, conn); err != nil {
 			select {
 			case rtm.killChannel <- false:
 			case <-rtm.disconnected:
@@ -392,9 +411,9 @@ func (rtm *RTM) ping() error {
 // receiveIncomingEvent attempts to receive an event from the RTM's websocket.
 // This will block until a frame is available from the websocket.
 // If the read from the websocket results in a fatal error, this function will return non-nil.
-func (rtm *RTM) receiveIncomingEvent(events chan json.RawMessage) error {
+func (rtm *RTM) receiveIncomingEvent(events chan json.RawMessage, conn *websocket.Conn) error {
 	event := json.RawMessage{}
-	err := rtm.conn.ReadJSON(&event)
+	err := conn.ReadJSON(&event)
 
 	// check if the connection was closed.
 	if websocket.IsUnexpectedCloseError(err) {

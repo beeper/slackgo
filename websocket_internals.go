@@ -47,6 +47,8 @@ type LatencyReport struct {
 // InvalidAuthEvent is used in case we can't even authenticate with the API
 type InvalidAuthEvent struct{}
 
+type FatalConnectionErrorEvent struct{}
+
 // UnmarshallingErrorEvent is used when there are issues deconstructing a response
 type UnmarshallingErrorEvent struct {
 	ErrorObj error
