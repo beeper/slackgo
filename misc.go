@@ -442,10 +442,6 @@ func postJSON(ctx context.Context, client httpClient, endpoint, token string, js
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	req.Header.Set("User-Agent", DefaultUserAgent)
-	// allow retry client to re-send the request body on 429/5xx.
-	req.GetBody = func() (io.ReadCloser, error) {
-		return io.NopCloser(bytes.NewReader(jsonBody)), nil
-	}
 	return doPost(client, req, newJSONParser(intf), d)
 }
 
