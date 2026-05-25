@@ -65,6 +65,12 @@ type AppMentionEvent struct {
 	// BotID is filled out when a bot triggers the app_mention event
 	BotID string `json:"bot_id,omitempty"`
 
+	// Fields shared with message events
+	Blocks      slack.Blocks       `json:"blocks,omitempty"`
+	Attachments []slack.Attachment `json:"attachments,omitempty"`
+	Files       []slack.File       `json:"files,omitempty"`
+	Upload      bool               `json:"upload,omitempty"`
+
 	// When the app is mentioned in the edited message
 	Edited *Edited `json:"edited,omitempty"`
 
@@ -279,24 +285,31 @@ type SharedLinks struct {
 	URL    string `json:"url"`
 }
 
+const (
+	ChannelTypeChannel = "channel" // Public channel message
+	ChannelTypeGroup   = "group"   // Private channel message
+	ChannelTypeIM      = "im"      // Direct message
+	ChannelTypeMPIM    = "mpim"    // Multiparty direct message
+)
+
 // MessageEvent occurs when a variety of types of messages has been posted.
 // Parse ChannelType to see which
 // if ChannelType = "group", this is a private channel message
 // if ChannelType = "channel", this message was sent to a channel
 // if ChannelType = "im", this is a private message
-// if ChannelType = "mim", A message was posted in a multiparty direct message channel
-// TODO: Improve this so that it is not required to manually parse ChannelType
+// if ChannelType = "mpim", A message was posted in a multiparty direct message channel
 type MessageEvent struct {
 	// Basic Message Event - https://api.slack.com/events/message
-	ClientMsgID     string `json:"client_msg_id"`
-	Type            string `json:"type"`
-	User            string `json:"user"`
-	Text            string `json:"text"`
-	ThreadTimeStamp string `json:"thread_ts"`
-	TimeStamp       string `json:"ts"`
-	Channel         string `json:"channel"`
-	ChannelType     string `json:"channel_type"`
-	EventTimeStamp  string `json:"event_ts"`
+	ClientMsgID     string       `json:"client_msg_id"`
+	Type            string       `json:"type"`
+	User            string       `json:"user"`
+	Text            string       `json:"text"`
+	Blocks          slack.Blocks `json:"blocks,omitempty"`
+	ThreadTimeStamp string       `json:"thread_ts"`
+	TimeStamp       string       `json:"ts"`
+	Channel         string       `json:"channel"`
+	ChannelType     string       `json:"channel_type"`
+	EventTimeStamp  string       `json:"event_ts"`
 
 	// When Message comes from a channel that is shared between workspaces
 	UserTeam   string `json:"user_team,omitempty"`
@@ -320,13 +333,24 @@ type MessageEvent struct {
 	SubType string `json:"subtype,omitempty"`
 
 	// bot_message (https://api.slack.com/events/message/bot_message)
-	BotID    string `json:"bot_id,omitempty"`
-	Username string `json:"username,omitempty"`
-	Icons    *Icon  `json:"icons,omitempty"`
+	BotID      string `json:"bot_id,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Icons      *Icon  `json:"icons,omitempty"`
+	WorkflowID string `json:"workflow_id,omitempty"`
 
 	// AssistantThread contains action token for Data Access API queries in message events
 	AssistantThread *AssistantThreadActionToken `json:"assistant_thread,omitempty"`
+
+	// Huddle-related fields (subtype "huddle_thread")
+	Room            *slack.HuddleRoom `json:"room,omitempty"`
+	NoNotifications bool              `json:"no_notifications,omitempty"`
+	Permalink       string            `json:"permalink,omitempty"`
 }
+
+func (e *MessageEvent) IsIM() bool      { return e.ChannelType == ChannelTypeIM }
+func (e *MessageEvent) IsChannel() bool { return e.ChannelType == ChannelTypeChannel }
+func (e *MessageEvent) IsGroup() bool   { return e.ChannelType == ChannelTypeGroup }
+func (e *MessageEvent) IsMpIM() bool    { return e.ChannelType == ChannelTypeMPIM }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for MessageEvent.
 // This custom unmarshaler handles both regular messages and message_changed events
@@ -1125,6 +1149,36 @@ type UserStatusChangedEvent struct {
 	EventTS string `json:"event_ts"`
 }
 
+// EntityDetailsRequestedEvent is sent when entity details are requested
+// This event is fired when a user clicks on a Work Object link and Slack requests
+// details about the entity from your app.
+type EntityDetailsRequestedEvent struct {
+	Type         string                            `json:"type"`
+	User         string                            `json:"user"`
+	ExternalRef  EntityDetailsRequestedExternalRef `json:"external_ref"`
+	EntityURL    string                            `json:"entity_url"`
+	Link         EntityDetailsRequestedLink        `json:"link"`
+	AppUnfurlURL string                            `json:"app_unfurl_url"`
+	EventTS      string                            `json:"event_ts"`
+	TriggerID    string                            `json:"trigger_id"`
+	UserLocale   string                            `json:"user_locale"`
+	Channel      string                            `json:"channel,omitempty"`
+	MessageTs    string                            `json:"message_ts,omitempty"`
+	ThreadTs     string                            `json:"thread_ts,omitempty"`
+}
+
+// EntityDetailsRequestedExternalRef represents the external reference in entity_details_requested event
+type EntityDetailsRequestedExternalRef struct {
+	ID   string `json:"id"`
+	Type string `json:"type,omitempty"`
+}
+
+// EntityDetailsRequestedLink represents the link information in entity_details_requested event
+type EntityDetailsRequestedLink struct {
+	URL    string `json:"url"`
+	Domain string `json:"domain"`
+}
+
 type Actor struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -1334,6 +1388,8 @@ const (
 	UserStatusChanged = EventsAPIType("user_status_changed")
 	// WorkflowStepExecute Happens, if a workflow step of your app is invoked
 	WorkflowStepExecute = EventsAPIType("workflow_step_execute")
+	// EntityDetailsRequested is sent when entity details are requested
+	EntityDetailsRequested = EventsAPIType("entity_details_requested")
 )
 
 // EventsAPIInnerEventMapping maps INNER Event API events to their corresponding struct
@@ -1420,6 +1476,7 @@ var EventsAPIInnerEventMapping = map[EventsAPIType]interface{}{
 	UserHuddleChanged:             UserHuddleChangedEvent{},
 	UserProfileChanged:            UserProfileChangedEvent{},
 	UserStatusChanged:             UserStatusChangedEvent{},
+	EntityDetailsRequested:        EntityDetailsRequestedEvent{},
 }
 
 func init() {

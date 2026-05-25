@@ -608,7 +608,6 @@ var EventMapping = map[string]interface{}{
 	"channel_archive":         ChannelArchiveEvent{},
 	"channel_unarchive":       ChannelUnarchiveEvent{},
 	"channel_history_changed": ChannelHistoryChangedEvent{},
-	"channel_updated":         ChannelUpdateEvent{},
 
 	"dnd_updated":      DNDUpdatedEvent{},
 	"dnd_updated_user": DNDUpdatedEvent{},
@@ -659,8 +658,11 @@ var EventMapping = map[string]interface{}{
 
 	"manual_presence_change": ManualPresenceChangeEvent{},
 
-	"user_change":      UserChangeEvent{},
-	"user_invalidated": UserInvalidatedEvent{},
+	"user_change":          UserChangeEvent{},
+	"user_invalidated":     UserInvalidatedEvent{},
+	"user_status_changed":  UserStatusChangedEvent{},
+	"user_huddle_changed":  UserHuddleChangedEvent{},
+	"user_profile_changed": UserProfileChangedEvent{},
 
 	"emoji_changed": EmojiChangedEvent{},
 
@@ -672,6 +674,10 @@ var EventMapping = map[string]interface{}{
 	"bot_changed": BotChangedEvent{},
 
 	"accounts_changed": AccountsChangedEvent{},
+
+	"apps_uninstalled":     AppsUninstalledEvent{},
+	"activity":             ActivityEvent{},
+	"badge_counts_updated": BadgeCountsUpdatedEvent{},
 
 	"reconnect_url": ReconnectUrlEvent{},
 
@@ -686,4 +692,10 @@ var EventMapping = map[string]interface{}{
 
 	"desktop_notification":       DesktopNotificationEvent{},
 	"mobile_in_app_notification": MobileInAppNotificationEvent{},
+
+	"channel_updated": ChannelUpdateEvent{},
+
+	"sh_room_join":   SHRoomJoinEvent{},
+	"sh_room_leave":  SHRoomLeaveEvent{},
+	"sh_room_update": SHRoomUpdateEvent{},
 }

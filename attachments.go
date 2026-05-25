@@ -81,9 +81,9 @@ type Attachment struct {
 	Text      string `json:"text,omitempty"`
 
 	ImageURL    string `json:"image_url,omitempty"`
-	ImageWidth  int    `json:"image_width,omitempty"`
-	ImageHeight int    `json:"image_height,omitempty"`
 	ImageBytes  int    `json:"image_bytes,omitempty"`
+	ImageHeight int    `json:"image_height,omitempty"`
+	ImageWidth  int    `json:"image_width,omitempty"`
 	ThumbURL    string `json:"thumb_url,omitempty"`
 	ThumbWidth  int    `json:"thumb_width,omitempty"`
 	ThumbHeight int    `json:"thumb_height,omitempty"`
@@ -97,10 +97,10 @@ type Attachment struct {
 	Actions    []AttachmentAction `json:"actions,omitempty"`
 	MarkdownIn []string           `json:"mrkdwn_in,omitempty"`
 
-	IsMsgUnfurl bool `json:"is_msg_unfurl,omitempty"`
+	Blocks Blocks `json:"blocks,omitempty"`
 
+	IsMsgUnfurl   bool            `json:"is_msg_unfurl,omitempty"`
 	MessageBlocks []MessageBlocks `json:"message_blocks,omitempty"`
-	Blocks        Blocks          `json:"blocks,omitempty"`
 
 	Footer     string `json:"footer,omitempty"`
 	FooterIcon string `json:"footer_icon,omitempty"`

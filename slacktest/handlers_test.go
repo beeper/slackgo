@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	slack "github.com/slack-go/slack"
+	"github.com/slack-go/slack"
 )
 
 func TestAuthTestHandler(t *testing.T) {
@@ -30,6 +30,18 @@ func TestPostMessageHandler(t *testing.T) {
 	assert.NoError(t, err, "should not error out")
 	assert.Equal(t, "foo", channel, "channel should be correct")
 	assert.NotEmpty(t, tstamp, "timestamp should not be empty")
+}
+
+func TestPostEphemeralHandler(t *testing.T) {
+	s := NewTestServer()
+	go s.Start()
+
+	client := slack.New("ABCDEFG", slack.OptionAPIURL(s.GetAPIURL()))
+	tstamp, err := client.PostEphemeral("fake_channel", "fake_user", slack.MsgOptionText("some ephemeral text", false), slack.MsgOptionPostMessageParameters(slack.PostMessageParameters{}))
+	assert.NoError(t, err, "should not error out")
+	assert.NotEmpty(t, tstamp, "timestamp should not be empty")
+
+	assert.True(t, s.SawOutgoingMessage("some ephemeral text"))
 }
 
 func TestServerCreateConversationHandler(t *testing.T) {

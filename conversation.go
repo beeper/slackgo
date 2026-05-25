@@ -29,6 +29,7 @@ type Conversation struct {
 	IsPrivate          bool     `json:"is_private"`
 	IsReadOnly         bool     `json:"is_read_only"`
 	IsMpIM             bool     `json:"is_mpim"`
+	IsUserDeleted      bool     `json:"is_user_deleted"`
 	Unlinked           int      `json:"unlinked"`
 	NameNormalized     string   `json:"name_normalized"`
 	NumMembers         int      `json:"num_members"`
@@ -68,12 +69,13 @@ type Purpose struct {
 	LastSet JSONTime `json:"last_set"`
 }
 
-// Properties contains the Canvas associated to the channel.
+// Properties contains additional fields that appear based on the context of the conversation
 type Properties struct {
-	Canvas              Canvas       `json:"canvas"`
-	PostingRestrictedTo RestrictedTo `json:"posting_restricted_to"`
-	Tabs                []Tab        `json:"tabs"`
-	ThreadsRestrictedTo RestrictedTo `json:"threads_restricted_to"`
+	Canvas              Canvas        `json:"canvas"`
+	PostingRestrictedTo RestrictedTo  `json:"posting_restricted_to"`
+	Tabs                []Tab         `json:"tabs"`
+	ThreadsRestrictedTo RestrictedTo  `json:"threads_restricted_to"`
+	RecordChannel       RecordChannel `json:"record_channel"`
 }
 
 type RestrictedTo struct {
@@ -91,6 +93,13 @@ type Canvas struct {
 	FileId       string `json:"file_id"`
 	IsEmpty      bool   `json:"is_empty"`
 	QuipThreadId string `json:"quip_thread_id"`
+}
+
+type RecordChannel struct {
+	RecordID          string `json:"record_id"`
+	RecordType        string `json:"record_type"`
+	RecordLabel       string `json:"record_label"`
+	RecordLabelPlural string `json:"record_label_plural"`
 }
 
 type GetUsersInConversationParameters struct {
@@ -345,12 +354,14 @@ func (api *Client) InviteUsersToConversationContext(ctx context.Context, channel
 	return response.Channel, response.Err()
 }
 
-// The following functions are for inviting users to a channel but setting the `force`
-// parameter to true. We have added this so that we don't break the existing API.
-//
-// IMPORTANT: If we ever get here for _another_ parameter, we should consider refactoring
-// this to be more flexible.
-//
+/**********************************************************************************
+The following functions are for inviting users to a channel but setting the `force`
+parameter to true. We have added this so that we don't break the existing API.
+
+IMPORTANT: If we ever get here for _another_ parameter, we should consider refactoring
+this to be more flexible.
+*/
+
 // ForceInviteUsersToConversation invites users to a channel but sets the `force`
 // parameter to true.
 //
@@ -948,13 +959,13 @@ type GetConversationHistoryResponse struct {
 	Messages []Message `json:"messages"`
 }
 
-// GetConversationHistory joins an existing conversation.
+// GetConversationHistory retrieves the message history from the specified conversation.
 // For more details, see GetConversationHistoryContext documentation.
 func (api *Client) GetConversationHistory(params *GetConversationHistoryParameters) (*GetConversationHistoryResponse, error) {
 	return api.GetConversationHistoryContext(context.Background(), params)
 }
 
-// GetConversationHistoryContext joins an existing conversation with a custom context.
+// GetConversationHistoryContext retrieves the message history from the specified conversation with a custom context.
 // Slack API docs: https://api.slack.com/methods/conversations.history
 func (api *Client) GetConversationHistoryContext(ctx context.Context, params *GetConversationHistoryParameters) (*GetConversationHistoryResponse, error) {
 	values := url.Values{"token": {api.token}, "channel": {params.ChannelID}}
@@ -1015,21 +1026,55 @@ func (api *Client) MarkConversationContext(ctx context.Context, channel, ts stri
 	return response.Err()
 }
 
+// createChannelCanvasParams contains arguments for CreateChannelCanvas method call.
+type createChannelCanvasParams struct {
+	title           string
+	documentContent *DocumentContent
+}
+
+// CreateChannelCanvasOption options for the CreateChannelCanvas method call.
+type CreateChannelCanvasOption func(*createChannelCanvasParams)
+
+// CreateChannelCanvasOptionTitle sets the title of the canvas.
+func CreateChannelCanvasOptionTitle(title string) CreateChannelCanvasOption {
+	return func(params *createChannelCanvasParams) {
+		params.title = title
+	}
+}
+
+// CreateChannelCanvasOptionDocumentContent sets the document content of the canvas.
+func CreateChannelCanvasOptionDocumentContent(documentContent DocumentContent) CreateChannelCanvasOption {
+	return func(params *createChannelCanvasParams) {
+		params.documentContent = &documentContent
+	}
+}
+
 // CreateChannelCanvas creates a new canvas in a channel.
 // For more details, see CreateChannelCanvasContext documentation.
-func (api *Client) CreateChannelCanvas(channel string, documentContent DocumentContent) (string, error) {
-	return api.CreateChannelCanvasContext(context.Background(), channel, documentContent)
+func (api *Client) CreateChannelCanvas(channel string, documentContent DocumentContent, options ...CreateChannelCanvasOption) (string, error) {
+	return api.CreateChannelCanvasContext(context.Background(), channel, documentContent, options...)
 }
 
 // CreateChannelCanvasContext creates a new canvas in a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/conversations.canvases.create
-func (api *Client) CreateChannelCanvasContext(ctx context.Context, channel string, documentContent DocumentContent) (string, error) {
+func (api *Client) CreateChannelCanvasContext(ctx context.Context, channel string, documentContent DocumentContent, options ...CreateChannelCanvasOption) (string, error) {
+	params := createChannelCanvasParams{
+		documentContent: &documentContent,
+	}
+
+	for _, opt := range options {
+		opt(&params)
+	}
+
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channel},
 	}
-	if documentContent.Type != "" {
-		documentContentJSON, err := json.Marshal(documentContent)
+	if params.title != "" {
+		values.Add("title", params.title)
+	}
+	if params.documentContent != nil && params.documentContent.Type != "" {
+		documentContentJSON, err := json.Marshal(params.documentContent)
 		if err != nil {
 			return "", err
 		}

@@ -1,3 +1,24 @@
+// This example demonstrates a basic Socket Mode client that listens for
+// Events API events, interactive components, and slash commands.
+//
+// Socket Mode requires two tokens:
+//
+//   - App-level token (xapp-…): opens the WebSocket connection via
+//     apps.connections.open. Generate one in your app settings under
+//     Basic Information → App-Level Tokens with the connections:write scope.
+//
+//   - Bot token (xoxb-…): used for all Web API calls (posting messages,
+//     opening views, etc.). This is the token you get after installing the
+//     app to a workspace.
+//
+// The bot token is passed to slack.New() as the primary credential; the
+// app-level token is passed via slack.OptionAppLevelToken().
+//
+// To run:
+//
+//	export SLACK_APP_TOKEN=xapp-...
+//	export SLACK_BOT_TOKEN=xoxb-...
+//	go run examples/socketmode/socketmode.go
 package main
 
 import (
@@ -76,6 +97,14 @@ func main() {
 						_, _, err := client.PostMessage(ev.Channel, slack.MsgOptionText("Yes, hello.", false))
 						if err != nil {
 							fmt.Printf("failed posting message: %v", err)
+						}
+					case *slackevents.MessageEvent:
+						fmt.Printf("Message from %s: %s\n", ev.User, ev.Text)
+						if len(ev.Blocks.BlockSet) > 0 {
+							fmt.Printf("Message contains %d block(s):\n", len(ev.Blocks.BlockSet))
+							for i, block := range ev.Blocks.BlockSet {
+								fmt.Printf("  Block %d: type=%s\n", i, block.BlockType())
+							}
 						}
 					case *slackevents.MemberJoinedChannelEvent:
 						fmt.Printf("user %q joined to channel %q", ev.User, ev.Channel)

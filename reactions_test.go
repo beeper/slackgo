@@ -27,12 +27,12 @@ func (rh *reactionsHandler) accumulateFormValue(k string, r *http.Request) {
 
 func (rh *reactionsHandler) handler(w http.ResponseWriter, r *http.Request) {
 	rh.accumulateFormValue("channel", r)
-	rh.accumulateFormValue("count", r)
+	rh.accumulateFormValue("cursor", r)
 	rh.accumulateFormValue("file", r)
 	rh.accumulateFormValue("file_comment", r)
 	rh.accumulateFormValue("full", r)
+	rh.accumulateFormValue("limit", r)
 	rh.accumulateFormValue("name", r)
-	rh.accumulateFormValue("page", r)
 	rh.accumulateFormValue("timestamp", r)
 	rh.accumulateFormValue("user", r)
 	w.Header().Set("Content-Type", "application/json")
@@ -139,11 +139,11 @@ func TestSlack_GetReactions(t *testing.T) {
 	once.Do(startServer)
 	api := New("testing-token", OptionAPIURL("http://"+serverAddr+"/"))
 	tests := []struct {
-		ref           ItemRef
-		params        GetReactionsParameters
-		wantParams    map[string]string
-		json          string
-		wantReactions []ItemReaction
+		ref             ItemRef
+		params          GetReactionsParameters
+		wantParams      map[string]string
+		json            string
+		wantReactedItem ReactedItem
 	}{
 		{
 			NewRefToMessage("ChannelID", "123"),
@@ -153,24 +153,41 @@ func TestSlack_GetReactions(t *testing.T) {
 				"timestamp": "123",
 			},
 			`{"ok": true,
-    "type": "message",
-    "message": {
-        "reactions": [
-            {
-                "name": "astonished",
-                "count": 3,
-                "users": [ "U1", "U2", "U3" ]
-            },
-            {
-                "name": "clock1",
-                "count": 3,
-                "users": [ "U1", "U2" ]
-            }
-        ]
-    }}`,
-			[]ItemReaction{
-				{Name: "astonished", Count: 3, Users: []string{"U1", "U2", "U3"}},
-				{Name: "clock1", Count: 3, Users: []string{"U1", "U2"}},
+		 "type": "message",
+		 "channel": "ChannelID",
+		 "message": {
+			"text": "lorem ipsum dolor sit amet",
+			"ts": "123",
+			"user": "U2147483828",
+		     "reactions": [
+		         {
+		             "name": "astonished",
+		             "count": 3,
+		             "users": [ "U1", "U2", "U3" ]
+		         },
+		         {
+		             "name": "clock1",
+		             "count": 3,
+		             "users": [ "U1", "U2" ]
+		         }
+		     ]
+		 }}`,
+			ReactedItem{
+				Item: Item{
+					Type:    "message",
+					Channel: "ChannelID",
+					Message: &Message{
+						Msg: Msg{
+							Text:      "lorem ipsum dolor sit amet",
+							User:      "U2147483828",
+							Timestamp: "123",
+						},
+					},
+				},
+				Reactions: []ItemReaction{
+					{Name: "astonished", Count: 3, Users: []string{"U1", "U2", "U3"}},
+					{Name: "clock1", Count: 3, Users: []string{"U1", "U2"}},
+				},
 			},
 		},
 		{
@@ -183,6 +200,19 @@ func TestSlack_GetReactions(t *testing.T) {
 			`{"ok": true,
     "type": "file",
     "file": {
+		  "id": "F0A12BCDE",
+		  "created": 1531763342,
+		  "timestamp": 1531763342,
+		  "name": "tedair.gif",
+		  "title": "tedair.gif",
+		  "mimetype": "image/gif",
+		  "filetype": "gif",
+		  "pretty_type": "GIF",
+		  "user": "U012A3BCD",
+		  "editable": false,
+		  "size": 137531,
+		  "mode": "hosted",
+    	  "is_external": false,
         "reactions": [
             {
                 "name": "astonished",
@@ -196,13 +226,25 @@ func TestSlack_GetReactions(t *testing.T) {
             }
         ]
     }}`,
-			[]ItemReaction{
-				{Name: "astonished", Count: 3, Users: []string{"U1", "U2", "U3"}},
-				{Name: "clock1", Count: 3, Users: []string{"U1", "U2"}},
+			ReactedItem{
+				Item: Item{
+					Type: "file", File: &File{
+						Name:      "tedair.gif",
+						ID:        "F0A12BCDE",
+						Created:   1531763342,
+						Timestamp: 1531763342,
+						User:      "U012A3BCD",
+						Editable:  false,
+						Size:      137531,
+					},
+				},
+				Reactions: []ItemReaction{
+					{Name: "astonished", Count: 3, Users: []string{"U1", "U2", "U3"}},
+					{Name: "clock1", Count: 3, Users: []string{"U1", "U2"}},
+				},
 			},
 		},
 		{
-
 			NewRefToComment("FileCommentID"),
 			GetReactionsParameters{},
 			map[string]string{
@@ -210,8 +252,22 @@ func TestSlack_GetReactions(t *testing.T) {
 			},
 			`{"ok": true,
     "type": "file_comment",
-    "file": {},
+    "file": {
+	 	  "id": "F0A12BCDE",
+		  "created": 1531763342,
+		  "timestamp": 1531763342,
+		  "name": "tedair.gif",
+		  "title": "tedair.gif",
+		  "mimetype": "image/gif",
+		  "filetype": "gif",
+		  "pretty_type": "GIF",
+		  "user": "U012A3BCD",
+		  "editable": false,
+		  "size": 137531,
+		  "is_external": false
+	 },
     "comment": {
+		  "comment": "lorem ipsum dolor sit amet comment",
         "reactions": [
             {
                 "name": "astonished",
@@ -225,9 +281,19 @@ func TestSlack_GetReactions(t *testing.T) {
             }
         ]
     }}`,
-			[]ItemReaction{
-				{Name: "astonished", Count: 3, Users: []string{"U1", "U2", "U3"}},
-				{Name: "clock1", Count: 3, Users: []string{"U1", "U2"}},
+			ReactedItem{
+				Item: Item{
+					Type: "file_comment", File: &File{
+						Name: "tedair.gif",
+					},
+					Comment: &Comment{
+						Comment: "lorem ipsum dolor sit amet comment",
+					},
+				},
+				Reactions: []ItemReaction{
+					{Name: "astonished", Count: 3, Users: []string{"U1", "U2", "U3"}},
+					{Name: "clock1", Count: 3, Users: []string{"U1", "U2"}},
+				},
 			},
 		},
 	}
@@ -240,11 +306,69 @@ func TestSlack_GetReactions(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%d: Unexpected error: %s", i, err)
 		}
-		if !reflect.DeepEqual(got, test.wantReactions) {
-			t.Errorf("%d: Got reaction %#v, want %#v", i, got, test.wantReactions)
+		if !reflect.DeepEqual(got.Reactions, test.wantReactedItem.Reactions) {
+			t.Errorf("%d: Got reaction %#v, want %#v", i, got.Reactions, test.wantReactedItem.Reactions)
 		}
 		if !reflect.DeepEqual(rh.gotParams, test.wantParams) {
 			t.Errorf("%d: Got params %#v, want %#v", i, rh.gotParams, test.wantParams)
+		}
+
+		switch got.Type {
+		case "message":
+			if got.Message == nil {
+				t.Fatalf("%d: Got message %#v, want %#v", i, got.Message, test.wantReactedItem.Message)
+			}
+
+			if got.Message.Text != test.wantReactedItem.Message.Text {
+				t.Errorf("%d: Got message text %#v, want %#v", i, got.Message.Text, test.wantReactedItem.Message.Text)
+			}
+			if got.Channel != test.wantReactedItem.Channel {
+				t.Errorf("%d: Got channel %#v, want %#v", i, got.Channel, test.wantReactedItem.Channel)
+			}
+			if got.Message.User != test.wantReactedItem.Message.User {
+				t.Errorf("%d: Got message user %#v, want %#v", i, got.Message.User, test.wantReactedItem.Message.User)
+			}
+			if got.Message.Timestamp != test.wantReactedItem.Message.Timestamp {
+				t.Errorf("%d: Got message timestamp %#v, want %#v", i, got.Message.Timestamp, test.wantReactedItem.Message.Timestamp)
+			}
+		case "file":
+			if got.File == nil {
+				t.Fatalf("%d: Got file %#v, want %#v", i, got.File, test.wantReactedItem.File)
+			}
+			if got.File.Name != test.wantReactedItem.File.Name {
+				t.Errorf("%d: Got file name %#v, want %#v", i, got.File.Name, test.wantReactedItem.File.Name)
+			}
+			if got.File.ID != test.wantReactedItem.File.ID {
+				t.Errorf("%d: Got file ID %#v, want %#v", i, got.File.ID, test.wantReactedItem.File.ID)
+			}
+			if got.File.Created != test.wantReactedItem.File.Created {
+				t.Errorf("%d: Got file created %#v, want %#v", i, got.File.Created, test.wantReactedItem.File.Created)
+			}
+			if got.File.Timestamp != test.wantReactedItem.File.Timestamp {
+				t.Errorf("%d: Got file timestamp %#v, want %#v", i, got.File.Timestamp, test.wantReactedItem.File.Timestamp)
+			}
+			if got.File.User != test.wantReactedItem.File.User {
+				t.Errorf("%d: Got file user %#v, want %#v", i, got.File.User, test.wantReactedItem.File.User)
+			}
+			if got.File.Editable != test.wantReactedItem.File.Editable {
+				t.Errorf("%d: Got file editable %#v, want %#v", i, got.File.Editable, test.wantReactedItem.File.Editable)
+			}
+			if got.File.Size != test.wantReactedItem.File.Size {
+				t.Errorf("%d: Got file size %#v, want %#v", i, got.File.Size, test.wantReactedItem.File.Size)
+			}
+		case "file_comment":
+			if got.Comment == nil {
+				t.Fatalf("%d: Got comment %#v, want %#v", i, got.Comment, test.wantReactedItem.Comment)
+			}
+			if got.File == nil {
+				t.Fatalf("%d: Got file %#v, want %#v", i, got.File, test.wantReactedItem.File)
+			}
+			if got.File.Name != test.wantReactedItem.File.Name {
+				t.Errorf("%d: Got file name %#v, want %#v", i, got.File.Name, test.wantReactedItem.File.Name)
+			}
+			if got.Comment.Comment != test.wantReactedItem.Comment.Comment {
+				t.Errorf("%d: Got comment comment %#v, want %#v", i, got.Comment.Comment, test.wantReactedItem.Comment.Comment)
+			}
 		}
 	}
 }
@@ -305,11 +429,8 @@ func TestSlack_ListReactions(t *testing.T) {
             }
         }
     ],
-    "paging": {
-        "count": 100,
-        "total": 4,
-        "page": 1,
-        "pages": 1
+    "response_metadata": {
+        "next_cursor": "dXNlcjpVMDYxTkZUVDI="
     }}`
 	want := []ReactedItem{
 		{
@@ -339,17 +460,18 @@ func TestSlack_ListReactions(t *testing.T) {
 		},
 	}
 	wantParams := map[string]string{
-		"user":  "User",
-		"count": "200",
-		"page":  "2",
-		"full":  "true",
+		"user":   "User",
+		"cursor": "somecursor",
+		"limit":  "200",
+		"full":   "true",
 	}
+	wantCursor := "dXNlcjpVMDYxTkZUVDI="
 	params := NewListReactionsParameters()
 	params.User = "User"
-	params.Count = 200
-	params.Page = 2
+	params.Cursor = "somecursor"
+	params.Limit = 200
 	params.Full = true
-	got, paging, err := api.ListReactions(params)
+	got, nextCursor, err := api.ListReactions(params)
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err)
 	}
@@ -366,7 +488,7 @@ func TestSlack_ListReactions(t *testing.T) {
 	if !reflect.DeepEqual(rh.gotParams, wantParams) {
 		t.Errorf("Got params %#v, want %#v", rh.gotParams, wantParams)
 	}
-	if reflect.DeepEqual(paging, Paging{}) {
-		t.Errorf("Want paging data, got empty struct")
+	if nextCursor != wantCursor {
+		t.Errorf("Got cursor %q, want %q", nextCursor, wantCursor)
 	}
 }

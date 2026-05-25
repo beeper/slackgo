@@ -1,6 +1,8 @@
 module github.com/slack-go/slack
 
-go 1.24.0
+go 1.25.0
+
+toolchain go1.26.3
 
 require (
 	github.com/go-test/deep v1.1.1

@@ -79,7 +79,7 @@ func getTestUserWithId(id string) User {
 		IsRestricted:      false,
 		IsUltraRestricted: false,
 		Updated:           1555425715,
-		Has2FA:            false,
+		Has2FA:            boolPtr(false),
 	}
 }
 
@@ -99,28 +99,28 @@ func getUserIdentity(rw http.ResponseWriter, r *http.Request) {
 	response := []byte(`{
   "ok": true,
   "user": {
-    "id": "UXXXXXXXX",
-    "name": "Test User",
-    "email": "test@test.com",
-    "image_24": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_24.jpg",
-    "image_32": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_32.jpg",
-    "image_48": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_48.jpg",
-    "image_72": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_72.jpg",
-    "image_192": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_192.jpg",
-    "image_512": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_512.jpg"
+	"id": "UXXXXXXXX",
+	"name": "Test User",
+	"email": "test@test.com",
+	"image_24": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_24.jpg",
+	"image_32": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_32.jpg",
+	"image_48": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_48.jpg",
+	"image_72": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_72.jpg",
+	"image_192": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_192.jpg",
+	"image_512": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_512.jpg"
   },
   "team": {
-    "id": "TXXXXXXXX",
-    "name": "team-name",
-    "domain": "team-domain",
-    "image_34": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_34.jpg",
-    "image_44": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_44.jpg",
-    "image_68": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_68.jpg",
-    "image_88": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_88.jpg",
-    "image_102": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_102.jpg",
-    "image_132": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_132.jpg",
-    "image_230": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_230.jpg",
-    "image_original": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_original.jpg"
+	"id": "TXXXXXXXX",
+	"name": "team-name",
+	"domain": "team-domain",
+	"image_34": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_34.jpg",
+	"image_44": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_44.jpg",
+	"image_68": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_68.jpg",
+	"image_88": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_88.jpg",
+	"image_102": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_102.jpg",
+	"image_132": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_132.jpg",
+	"image_230": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_230.jpg",
+	"image_original": "https:\/\/s3-us-west-2.amazonaws.com\/slack-files2\/avatars\/2016-10-18\/92962080834_ef14c1469fc0741caea1_original.jpg"
   }
 }`)
 	rw.Write(response)
@@ -215,7 +215,8 @@ func newProfileHandler(up *UserProfile) (setter func(http.ResponseWriter, *http.
 
 		*up = userProfile
 
-		// TODO(theckman): enhance this to return a full User object
+		// Response only needs {"ok":true} — this handler tests request parsing, not
+		// response unmarshalling
 		fmt.Fprint(w, `{"ok":true}`)
 	}
 }
@@ -329,6 +330,8 @@ func TestUserProfileSet(t *testing.T) {
 
 	up.RealName = "Real Name Test"
 	testSetUserRealName(api, up, t)
+
+	testSetUserProfile(api, up, t)
 }
 
 func testSetUserRealName(api *Client, up *UserProfile, t *testing.T) {
@@ -385,6 +388,28 @@ func testSetUserCustomStatusWithUser(api *Client, user string, up *UserProfile, 
 	}
 	if up.StatusExpiration != statusExpiration {
 		t.Fatalf(`UserProfile.StatusExpiration = %q, want %q`, up.StatusExpiration, statusExpiration)
+	}
+}
+
+func testSetUserProfile(api *Client, up *UserProfile, t *testing.T) {
+	profile := &UserProfile{
+		RealName:    "Set Profile Test",
+		DisplayName: "setprofile",
+		Title:       "Engineer",
+	}
+
+	if err := api.SetUserProfile("U1234567", profile); err != nil {
+		t.Fatalf("SetUserProfile() = %#v, want <nil>", err)
+	}
+
+	if up.RealName != profile.RealName {
+		t.Fatalf("UserProfile.RealName = %q, want %q", up.RealName, profile.RealName)
+	}
+	if up.DisplayName != profile.DisplayName {
+		t.Fatalf("UserProfile.DisplayName = %q, want %q", up.DisplayName, profile.DisplayName)
+	}
+	if up.Title != profile.Title {
+		t.Fatalf("UserProfile.Title = %q, want %q", up.Title, profile.Title)
 	}
 }
 
@@ -612,7 +637,7 @@ func setUserPhotoHandler(wantBytes []byte, wantParams UserSetPhotoParams) http.H
 // contents, and a function that can be called to remove the file.
 func createUserPhoto(t *testing.T) (*os.File, []byte, func()) {
 	photo := image.NewRGBA(image.Rect(0, 0, 64, 64))
-	draw.Draw(photo, photo.Bounds(), image.Black, image.ZP, draw.Src)
+	draw.Draw(photo, photo.Bounds(), image.Black, image.Point{}, draw.Src)
 
 	f, err := os.CreateTemp(os.TempDir(), "profile.png")
 	if err != nil {
@@ -678,8 +703,8 @@ func TestUserProfileCustomFieldsUnmarshalJSON(t *testing.T) {
 	}
 	if err := json.Unmarshal([]byte(`{
 	  "Xxxxxx": {
-	    "value": "test value",
-	    "alt": ""
+		"value": "test value",
+		"alt": ""
 	  }
 	}`), fields); err != nil {
 		t.Fatal(err)
@@ -697,8 +722,8 @@ func TestUserProfileCustomFieldsMarshalJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(b) != "[]" {
-		t.Fatalf(`string(b) = "%s", wanted "[]"`, string(b))
+	if string(b) != "{}" {
+		t.Fatalf(`string(b) = "%s", wanted "{}"`, string(b))
 	}
 	fields = getTestUserProfileCustomFields()
 	if _, err := json.Marshal(fields); err != nil {
@@ -758,6 +783,166 @@ func TestGetUsersHandlesRateLimit(t *testing.T) {
 		getTestUserWithId("U003"),
 	}, users) {
 		t.Fatal(ErrIncorrectResponse)
+	}
+}
+
+func TestUserUnmarshalJSON(t *testing.T) {
+	userJSON := `{
+		"id": "U12345678",
+		"team_id": "T12345678",
+		"name": "testuser",
+		"deleted": false,
+		"color": "4bbe2e",
+		"real_name": "Test User",
+		"tz": "America/Los_Angeles",
+		"tz_label": "Pacific Daylight Time",
+		"tz_offset": -25200,
+		"profile": {
+			"first_name": "Test",
+			"last_name": "User",
+			"real_name": "Test User",
+			"real_name_normalized": "Test User",
+			"display_name": "testuser",
+			"display_name_normalized": "testuser",
+			"pronouns": "they/them",
+			"avatar_hash": "abc123",
+			"email": "test@example.com",
+			"skype": "",
+			"phone": "+1234567890",
+			"image_24": "https://example.com/24.png",
+			"image_32": "https://example.com/32.png",
+			"image_48": "https://example.com/48.png",
+			"image_72": "https://example.com/72.png",
+			"image_192": "https://example.com/192.png",
+			"image_512": "https://example.com/512.png",
+			"image_1024": "https://example.com/1024.png",
+			"image_original": "https://example.com/original.png",
+			"is_custom_image": true,
+			"always_active": true,
+			"status_text": "Working",
+			"status_emoji": ":computer:",
+			"status_expiration": 0,
+			"status_text_canonical": "",
+			"huddle_state": "in_a_huddle",
+			"huddle_state_expiration_ts": 1648596421,
+			"start_date": "2022-01-01",
+			"team": "T12345678",
+			"fields": {}
+		},
+		"is_bot": false,
+		"is_admin": true,
+		"is_owner": false,
+		"is_primary_owner": false,
+		"is_restricted": false,
+		"is_ultra_restricted": false,
+		"is_stranger": false,
+		"is_app_user": false,
+		"is_invited_user": false,
+		"is_email_confirmed": true,
+		"has_2fa": false,
+		"has_files": true,
+		"presence": "active",
+		"locale": "en-US",
+		"updated": 1648596421,
+		"who_can_share_contact_card": "EVERYONE",
+		"enterprise_user": {
+			"id": "E12345678",
+			"enterprise_id": "E99999999",
+			"enterprise_name": "Test Enterprise",
+			"is_admin": false,
+			"is_owner": false,
+			"is_primary_owner": false,
+			"teams": ["T12345678", "T87654321"]
+		}
+	}`
+
+	var user User
+	if err := json.Unmarshal([]byte(userJSON), &user); err != nil {
+		t.Fatalf("Failed to unmarshal User: %s", err)
+	}
+
+	// Verify User fields
+	if user.WhoCanShareContactCard != "EVERYONE" {
+		t.Fatalf(`user.WhoCanShareContactCard = %q, want "EVERYONE"`, user.WhoCanShareContactCard)
+	}
+
+	// Verify UserProfile fields
+	if user.Profile.AlwaysActive != true {
+		t.Fatalf(`user.Profile.AlwaysActive = %v, want true`, user.Profile.AlwaysActive)
+	}
+	if user.Profile.Pronouns != "they/them" {
+		t.Fatalf(`user.Profile.Pronouns = %q, want "they/them"`, user.Profile.Pronouns)
+	}
+	if user.Profile.Image1024 != "https://example.com/1024.png" {
+		t.Fatalf(`user.Profile.Image1024 = %q, want "https://example.com/1024.png"`, user.Profile.Image1024)
+	}
+	if user.Profile.IsCustomImage != true {
+		t.Fatalf(`user.Profile.IsCustomImage = %v, want true`, user.Profile.IsCustomImage)
+	}
+	if user.Profile.HuddleState != "in_a_huddle" {
+		t.Fatalf(`user.Profile.HuddleState = %q, want "in_a_huddle"`, user.Profile.HuddleState)
+	}
+	if user.Profile.HuddleStateExpirationTS != 1648596421 {
+		t.Fatalf(`user.Profile.HuddleStateExpirationTS = %d, want 1648596421`, user.Profile.HuddleStateExpirationTS)
+	}
+	if user.Profile.StartDate != "2022-01-01" {
+		t.Fatalf(`user.Profile.StartDate = %q, want "2022-01-01"`, user.Profile.StartDate)
+	}
+	if user.Profile.StatusTextCanonical != "" {
+		t.Fatalf(`user.Profile.StatusTextCanonical = %q, want ""`, user.Profile.StatusTextCanonical)
+	}
+
+	// Verify EnterpriseUser fields
+	if user.Enterprise.IsPrimaryOwner != false {
+		t.Fatalf(`user.Enterprise.IsPrimaryOwner = %v, want false`, user.Enterprise.IsPrimaryOwner)
+	}
+	if user.Enterprise.EnterpriseID != "E99999999" {
+		t.Fatalf(`user.Enterprise.EnterpriseID = %q, want "E99999999"`, user.Enterprise.EnterpriseID)
+	}
+
+	// Verify round-trip: marshal and unmarshal should produce the same result
+	marshaled, err := json.Marshal(user)
+	if err != nil {
+		t.Fatalf("Failed to marshal User: %s", err)
+	}
+	var roundTripped User
+	if err := json.Unmarshal(marshaled, &roundTripped); err != nil {
+		t.Fatalf("Failed to unmarshal round-tripped User: %s", err)
+	}
+	if !reflect.DeepEqual(user, roundTripped) {
+		t.Fatal("Round-trip marshal/unmarshal produced different result")
+	}
+}
+
+func TestUserHas2FA_ThreeStates(t *testing.T) {
+	// When has_2fa is present and true
+	withTrue := []byte(`{"id":"U1","has_2fa":true}`)
+	var u1 User
+	if err := json.Unmarshal(withTrue, &u1); err != nil {
+		t.Fatal(err)
+	}
+	if u1.Has2FA == nil || *u1.Has2FA != true {
+		t.Fatalf("expected Has2FA=true, got %v", u1.Has2FA)
+	}
+
+	// When has_2fa is present and false
+	withFalse := []byte(`{"id":"U2","has_2fa":false}`)
+	var u2 User
+	if err := json.Unmarshal(withFalse, &u2); err != nil {
+		t.Fatal(err)
+	}
+	if u2.Has2FA == nil || *u2.Has2FA != false {
+		t.Fatalf("expected Has2FA=false, got %v", u2.Has2FA)
+	}
+
+	// When has_2fa is absent (bot token response)
+	withoutField := []byte(`{"id":"U3"}`)
+	var u3 User
+	if err := json.Unmarshal(withoutField, &u3); err != nil {
+		t.Fatal(err)
+	}
+	if u3.Has2FA != nil {
+		t.Fatalf("expected Has2FA=nil, got %v", *u3.Has2FA)
 	}
 }
 

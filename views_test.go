@@ -62,6 +62,21 @@ func TestSlack_OpenView(t *testing.T) {
 			expectedErr:  ErrBlockIDNotUnique,
 		},
 		{
+			caseName:  "allow multiple blocks with empty block IDs",
+			triggerID: "dummy_trigger_id",
+			modalViewRequest: ModalViewRequest{
+				Blocks: Blocks{
+					BlockSet: []Block{
+						&InputBlock{BlockID: ""},
+						&InputBlock{BlockID: ""},
+					},
+				},
+			},
+			rawResp:      `{"ok": true, "view": {}}`,
+			expectedResp: &ViewResponse{SlackResponse{Ok: true}, View{}},
+			expectedErr:  nil,
+		},
+		{
 			caseName:         "raise an error from Slack API",
 			triggerID:        "dummy_trigger_id",
 			modalViewRequest: ModalViewRequest{},
@@ -833,16 +848,65 @@ func TestSlack_PushViewSubmissionResponse(t *testing.T) {
 
 func TestSlack_ErrorsViewSubmissionResponse(t *testing.T) {
 	resp := NewErrorsViewSubmissionResponse(map[string]string{
-		"input_text_action_id": "Please input a name that's at least 6 characters long",
-		"file_action_id":       "File exceeded size limit of 5 KB",
+		"name_input_block": "Please input a name that's at least 6 characters long",
+		"file_input_block": "File exceeded size limit of 5 KB",
 	})
 	rawResp := `{
 		"response_action": "errors",
 		"errors": {
-			"input_text_action_id": "Please input a name that's at least 6 characters long",
-			"file_action_id": "File exceeded size limit of 5 KB"
+			"name_input_block": "Please input a name that's at least 6 characters long",
+			"file_input_block": "File exceeded size limit of 5 KB"
 		}
 	}`
 
 	assertViewSubmissionResponse(t, resp, rawResp)
+}
+
+func TestPublishViewContextRequest_HashOmittedWhenNil(t *testing.T) {
+	tests := []struct {
+		name        string
+		hash        *string
+		wantHashKey bool
+		wantHashVal string
+	}{
+		{
+			name:        "nil hash omits field",
+			hash:        nil,
+			wantHashKey: false,
+		},
+		{
+			name:        "non-empty hash includes field",
+			hash:        ptrString("156772938.1827394"),
+			wantHashKey: true,
+			wantHashVal: "156772938.1827394",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := PublishViewContextRequest{
+				UserID: "U12345",
+				View:   HomeTabViewRequest{Type: VTHomeTab},
+				Hash:   tt.hash,
+			}
+
+			data, err := json.Marshal(req)
+			assert.NoError(t, err)
+
+			var decoded map[string]any
+			err = json.Unmarshal(data, &decoded)
+			assert.NoError(t, err)
+
+			_, hasHash := decoded["hash"]
+			assert.Equal(t, tt.wantHashKey, hasHash, "hash key presence mismatch")
+
+			if tt.wantHashKey {
+				assert.Equal(t, tt.wantHashVal, decoded["hash"])
+			}
+		})
+	}
+}
+
+func ptrString(s string) *string {
+	return &s
 }

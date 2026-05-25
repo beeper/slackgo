@@ -1,3 +1,25 @@
+// This example demonstrates the SocketmodeHandler, a higher-level API that
+// routes Socket Mode events to registered handler functions instead of
+// requiring a manual event-loop switch.
+//
+// Socket Mode requires two tokens:
+//
+//   - App-level token (xapp-…): opens the WebSocket connection via
+//     apps.connections.open. Generate one in your app settings under
+//     Basic Information → App-Level Tokens with the connections:write scope.
+//
+//   - Bot token (xoxb-…): used for all Web API calls (posting messages,
+//     opening views, etc.). This is the token you get after installing the
+//     app to a workspace.
+//
+// The bot token is passed to slack.New() as the primary credential; the
+// app-level token is passed via slack.OptionAppLevelToken().
+//
+// To run:
+//
+//	export SLACK_APP_TOKEN=xapp-...
+//	export SLACK_BOT_TOKEN=xoxb-...
+//	go run examples/socketmode_handler/socketmode_handler.go
 package main
 
 import (
@@ -68,7 +90,8 @@ func main() {
 	socketmodeHandler.Handle(socketmode.EventTypeSlashCommand, middlewareSlashCommand)
 	socketmodeHandler.HandleSlashCommand("/rocket", middlewareSlashCommand)
 
-	// socketmodeHandler.HandleDefault(middlewareDefault)
+	// Handle all other events
+	socketmodeHandler.HandleDefault(middlewareDefault)
 
 	socketmodeHandler.RunEventLoop()
 }
@@ -205,5 +228,5 @@ func middlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 }
 
 func middlewareDefault(evt *socketmode.Event, client *socketmode.Client) {
-	// fmt.Fprintf(os.Stderr, "Unexpected event type received: %s\n", evt.Type)
+	fmt.Fprintf(os.Stderr, "Unexpected event type received: %s\n", evt.Type)
 }

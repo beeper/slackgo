@@ -325,6 +325,88 @@ func TestCreateChannelWithCanvas(t *testing.T) {
 	assertChannelWithCanvas(t, channel)
 }
 
+// Channel with RecordChannel
+var channelWithRecordChannel = `{
+    "id": "C024BE91L",
+    "name": "fun",
+    "is_channel": true,
+    "created": 1360782804,
+    "creator": "U024BE7LH",
+    "is_archived": false,
+    "is_general": false,
+    "members": [
+        "U024BE7LH"
+    ],
+    "topic": {
+        "value": "Fun times",
+        "creator": "U024BE7LV",
+        "last_set": 1369677212
+    },
+    "purpose": {
+        "value": "This channel is for fun",
+        "creator": "U024BE7LH",
+        "last_set": 1360782804
+    },
+    "is_member": true,
+    "last_read": "1401383885.000061",
+    "unread_count": 0,
+    "unread_count_display": 0,
+	"properties": {
+        "record_channel": {
+            "record_id": "S:00D0000000000000EAU:0010000000000000AA2",
+            "record_type": "Account",
+            "record_label": "Account",
+            "record_label_plural": "Accounts"
+        }
+    }
+}`
+
+func unmarshalChannelWithRecordChannel(j string) (*Channel, error) {
+	channel := &Channel{}
+	if err := json.Unmarshal([]byte(j), &channel); err != nil {
+		return nil, err
+	}
+	return channel, nil
+}
+
+func TestChannelWithRecordChannel(t *testing.T) {
+	channel, err := unmarshalChannelWithRecordChannel(channelWithRecordChannel)
+	assert.Nil(t, err)
+	assertChannelWithRecordChannel(t, channel)
+}
+
+func assertChannelWithRecordChannel(t *testing.T, channel *Channel) {
+	assertSimpleChannel(t, channel)
+	assert.Equal(t, "S:00D0000000000000EAU:0010000000000000AA2", channel.Properties.RecordChannel.RecordID)
+	assert.Equal(t, "Account", channel.Properties.RecordChannel.RecordType)
+	assert.Equal(t, "Account", channel.Properties.RecordChannel.RecordLabel)
+	assert.Equal(t, "Accounts", channel.Properties.RecordChannel.RecordLabelPlural)
+}
+
+func TestCreateChannelWithRecordChannel(t *testing.T) {
+	channel := &Channel{}
+	channel.ID = "C024BE91L"
+	channel.Name = "fun"
+	channel.IsChannel = true
+	channel.Created = JSONTime(1360782804)
+	channel.Creator = "U024BE7LH"
+	channel.IsArchived = false
+	channel.IsGeneral = false
+	channel.IsMember = true
+	channel.LastRead = "1401383885.000061"
+	channel.UnreadCount = 0
+	channel.UnreadCountDisplay = 0
+	channel.Properties = &Properties{
+		RecordChannel: RecordChannel{
+			RecordID:          "S:00D0000000000000EAU:0010000000000000AA2",
+			RecordType:        "Account",
+			RecordLabel:       "Account",
+			RecordLabelPlural: "Accounts",
+		},
+	}
+	assertChannelWithRecordChannel(t, channel)
+}
+
 // IM
 var simpleIM = `{
     "id": "D024BFF1M",
@@ -338,8 +420,8 @@ var simpleIM = `{
     "unread_count_display": 0
 }`
 
-func unmarshalIM(j string) (*IM, error) {
-	im := &IM{}
+func unmarshalIM(j string) (*Conversation, error) {
+	im := &Conversation{}
 	if err := json.Unmarshal([]byte(j), &im); err != nil {
 		return nil, err
 	}
@@ -352,7 +434,7 @@ func TestSimpleIM(t *testing.T) {
 	assertSimpleIM(t, im)
 }
 
-func assertSimpleIM(t *testing.T, im *IM) {
+func assertSimpleIM(t *testing.T, im *Conversation) {
 	assert.NotNil(t, im)
 	assert.Equal(t, "D024BFF1M", im.ID)
 	assert.Equal(t, true, im.IsIM)
@@ -366,7 +448,7 @@ func assertSimpleIM(t *testing.T, im *IM) {
 }
 
 func TestCreateSimpleIM(t *testing.T) {
-	im := &IM{}
+	im := &Conversation{}
 	im.ID = "D024BFF1M"
 	im.IsIM = true
 	im.User = "U024BE7LH"
@@ -875,6 +957,7 @@ func TestMarkConversation(t *testing.T) {
 
 func createChannelCanvasHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
+
 	response, _ := json.Marshal(struct {
 		SlackResponse
 		CanvasID string `json:"canvas_id"`
@@ -898,6 +981,28 @@ func TestCreateChannelCanvas(t *testing.T) {
 	canvasID, err := api.CreateChannelCanvas("C1234567890", documentContent)
 	if err != nil {
 		t.Errorf("Failed to create channel canvas: %v", err)
+		return
+	}
+
+	assert.Equal(t, "F05RQ01LJU0", canvasID)
+}
+
+func TestCreateChannelCanvasWithTitle(t *testing.T) {
+	once.Do(startServer)
+	api := New("testing-token", OptionAPIURL("http://"+serverAddr+"/"))
+
+	documentContent := DocumentContent{
+		Type:     "markdown",
+		Markdown: "> channel canvas with title!",
+	}
+
+	canvasID, err := api.CreateChannelCanvas(
+		"C1234567890",
+		documentContent,
+		CreateChannelCanvasOptionTitle("Test Canvas Title"),
+	)
+	if err != nil {
+		t.Errorf("Failed to create channel canvas with title: %v", err)
 		return
 	}
 

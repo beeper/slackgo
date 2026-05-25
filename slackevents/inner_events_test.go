@@ -115,6 +115,69 @@ func TestAppMentionWithAssistantThread(t *testing.T) {
 	}
 }
 
+func TestAppMentionWithBlocksFilesAttachments(t *testing.T) {
+	rawE := []byte(`{
+		"type": "app_mention",
+		"user": "U061F7AUR",
+		"text": "<@U0LAN0Z89> check this file",
+		"ts": "1628259917.003000",
+		"thread_ts": "1628259917.003000",
+		"channel": "C0LAN2Q65",
+		"event_ts": "1628259917.003000",
+		"bot_id": "B12345",
+		"blocks": [
+			{
+				"type": "section",
+				"block_id": "HNku",
+				"text": {
+					"type": "mrkdwn",
+					"text": "<@U0LAN0Z89> check this file"
+				}
+			}
+		],
+		"files": [
+			{
+				"id": "F12345",
+				"name": "test.png",
+				"mimetype": "image/png",
+				"filetype": "png"
+			}
+		],
+		"upload": true,
+		"attachments": [
+			{
+				"color": "29AF7B",
+				"fallback": "[no preview available]",
+				"id": 1,
+				"text": "attachment text"
+			}
+		]
+	}`)
+	var event AppMentionEvent
+	if err := json.Unmarshal(rawE, &event); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(event.Blocks.BlockSet) != 1 {
+		t.Errorf("Expected 1 block, got %d", len(event.Blocks.BlockSet))
+	}
+	if len(event.Files) != 1 {
+		t.Errorf("Expected 1 file, got %d", len(event.Files))
+	}
+	if event.Files[0].ID != "F12345" {
+		t.Errorf("Expected file ID 'F12345', got %s", event.Files[0].ID)
+	}
+	if !event.Upload {
+		t.Error("Expected Upload to be true")
+	}
+	if len(event.Attachments) != 1 {
+		t.Errorf("Expected 1 attachment, got %d", len(event.Attachments))
+	}
+	if event.Attachments[0].Text != "attachment text" {
+		t.Errorf("Expected attachment text 'attachment text', got %s", event.Attachments[0].Text)
+	}
+}
+
 func TestAppUninstalled(t *testing.T) {
 	rawE := []byte(`
 		{
@@ -405,7 +468,9 @@ func TestMessageEvent(t *testing.T) {
 	if e.Message.Text != "Live long and prospect." {
 		t.Error(fmt.Errorf("expected e.Message.Text Live long and prospect., got %s", e.Message.Text))
 	}
-
+	if !e.IsChannel() {
+		t.Error(fmt.Errorf("expected IsChannelMessage true, got false"))
+	}
 }
 
 func TestMessageEventWithAssistantThread(t *testing.T) {
@@ -444,6 +509,9 @@ func TestMessageEventWithAssistantThread(t *testing.T) {
 	}
 	if e.AssistantThread.ActionToken != "9876543.hijklmnop" {
 		t.Errorf("Expected ActionToken to be '9876543.hijklmnop', got %s", e.AssistantThread.ActionToken)
+	}
+	if !e.IsIM() {
+		t.Error(fmt.Errorf("expected IsIM true, got false"))
 	}
 }
 
@@ -500,6 +568,57 @@ func TestBotMessageEvent(t *testing.T) {
 	err := json.Unmarshal(rawE, &MessageEvent{})
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestMessageEventWithBlocks(t *testing.T) {
+	rawE := []byte(`
+		{
+			"type": "message",
+			"channel": "C024BE91L",
+			"user": "U2147483697",
+			"text": "ERROR",
+			"ts": "1355517523.000005",
+			"event_ts": "1355517523.000005",
+			"channel_type": "channel",
+			"blocks": [
+				{
+					"type": "section",
+					"text": {
+						"type": "mrkdwn",
+						"text": "> Danny Torrence left the following review for your property:"
+					}
+				}
+			]
+		}
+	`)
+	var e MessageEvent
+	err := json.Unmarshal(rawE, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if e.Text != "ERROR" {
+		t.Errorf("expected e.Text ERROR, got %s", e.Text)
+	}
+
+	// Blocks should be directly accessible on MessageEvent
+	if len(e.Blocks.BlockSet) != 1 {
+		t.Fatalf("expected 1 block in e.Blocks, got %d", len(e.Blocks.BlockSet))
+	}
+	if e.Blocks.BlockSet[0].BlockType() != slack.MBTSection {
+		t.Errorf("expected section block, got %s", e.Blocks.BlockSet[0].BlockType())
+	}
+
+	// Blocks should also be accessible via Message (populated by UnmarshalJSON)
+	if e.Message == nil {
+		t.Fatal("expected e.Message to be non-nil")
+	}
+	if len(e.Message.Blocks.BlockSet) != 1 {
+		t.Fatalf("expected 1 block in e.Message.Blocks, got %d", len(e.Message.Blocks.BlockSet))
+	}
+	if e.Message.Blocks.BlockSet[0].BlockType() != slack.MBTSection {
+		t.Errorf("expected section block in e.Message.Blocks, got %s", e.Message.Blocks.BlockSet[0].BlockType())
 	}
 }
 
@@ -1709,13 +1828,13 @@ func TestDndUpdatedEvent(t *testing.T) {
 func TestDndUpdatedUserEvent(t *testing.T) {
 	rawE := []byte(`
 		{
-    		"type": "dnd_updated_user",
-    		"user": "U1234",
-    		"dnd_status": {
-        		"dnd_enabled": true,
-        		"next_dnd_start_ts": 1450387800,
-        		"next_dnd_end_ts": 1450423800
-    		}
+			"type": "dnd_updated_user",
+			"user": "U1234",
+			"dnd_status": {
+				"dnd_enabled": true,
+				"next_dnd_start_ts": 1450387800,
+				"next_dnd_end_ts": 1450423800
+			}
 		}
 	`)
 
@@ -1767,10 +1886,10 @@ func TestEmailDomainChangedEvent(t *testing.T) {
 func TestGroupHistoryChangedEvent(t *testing.T) {
 	rawE := []byte(`
 		{
-    		"type": "group_history_changed",
-    		"latest": "1358877455.000010",
-    		"ts": "1361482916.000003",
-    		"event_ts": "1361482916.000004"
+			"type": "group_history_changed",
+			"latest": "1358877455.000010",
+			"ts": "1361482916.000003",
+			"event_ts": "1361482916.000004"
 		}
 	`)
 
@@ -1792,9 +1911,9 @@ func TestGroupHistoryChangedEvent(t *testing.T) {
 func TestGroupOpenEvent(t *testing.T) {
 	rawE := []byte(`
 		{
-    		"type": "group_open",
-    		"user": "U024BE7LH",
-    		"channel": "G024BE91L"
+			"type": "group_open",
+			"user": "U024BE7LH",
+			"channel": "G024BE91L"
 		}
 	`)
 
@@ -1890,10 +2009,10 @@ func TestImCreatedEvent(t *testing.T) {
 func TestImHistoryChangedEvent(t *testing.T) {
 	rawE := []byte(`
 		{
-    		"type": "im_history_changed",
-    		"latest": "1358877455.000010",
-    		"ts": "1361482916.000003",
-    		"event_ts": "1361482916.000004"
+			"type": "im_history_changed",
+			"latest": "1358877455.000010",
+			"ts": "1361482916.000003",
+			"event_ts": "1361482916.000004"
 		}
 	`)
 
@@ -2578,7 +2697,7 @@ func TestChannelUnsharedEvent(t *testing.T) {
 		"type": "channel_unshared",
 		"previously_connected_team_id": "E163Q94DX",
 		"channel": "C123ABC456",
-        "is_ext_shared": false,
+		"is_ext_shared": false,
 		"event_ts": "1561064063.001100"
 	}`
 
@@ -3054,4 +3173,143 @@ func TestAppHomeOpenedEvent_FullEventParsing_WithoutView(t *testing.T) {
 	assert.Equal(t, "home", appHomeEvent.Tab)
 	assert.Equal(t, "1747319568.267214", appHomeEvent.EventTimeStamp)
 	assert.Nil(t, appHomeEvent.View)
+}
+
+func TestEntityDetailsRequestedEvent(t *testing.T) {
+	jsonStr := `{
+		"type": "entity_details_requested",
+		"user": "U123456789",
+		"trigger_id": "1234567890123.1234567890123.abcdef01234567890abcdef012345689",
+		"user_locale": "en-US",
+		"entity_url": "https://example.com/incidents/123",
+		"external_ref": {
+			"id": "123"
+		},
+		"link": {
+			"url": "https://example.com/incidents/123",
+			"domain": "example.com"
+		},
+		"app_unfurl_url": "https://example.com/incidents/123",
+		"channel": "C123456789",
+		"message_ts": "1234567890.123456",
+		"event_ts": "1234567890.123456"
+	}`
+
+	var event EntityDetailsRequestedEvent
+	if err := json.Unmarshal([]byte(jsonStr), &event); err != nil {
+		t.Errorf("Failed to unmarshal EntityDetailsRequestedEvent: %v", err)
+	}
+
+	if event.Type != "entity_details_requested" {
+		t.Errorf("Expected type to be 'entity_details_requested', got %s", event.Type)
+	}
+
+	if event.User != "U123456789" {
+		t.Errorf("Expected user to be 'U123456789', got %s", event.User)
+	}
+
+	if event.ExternalRef.ID != "123" {
+		t.Errorf("Expected external_ref.id to be '123', got %s", event.ExternalRef.ID)
+	}
+
+	if event.EntityURL != "https://example.com/incidents/123" {
+		t.Errorf("Expected entity_url to be 'https://example.com/incidents/123', got %s", event.EntityURL)
+	}
+
+	if event.Link.URL != "https://example.com/incidents/123" {
+		t.Errorf("Expected link.url to be 'https://example.com/incidents/123', got %s", event.Link.URL)
+	}
+
+	if event.Link.Domain != "example.com" {
+		t.Errorf("Expected link.domain to be 'example.com', got %s", event.Link.Domain)
+	}
+
+	if event.TriggerID != "1234567890123.1234567890123.abcdef01234567890abcdef012345689" {
+		t.Errorf("Expected trigger_id to be '1234567890123.1234567890123.abcdef01234567890abcdef012345689', got %s", event.TriggerID)
+	}
+
+	if event.EventTS != "1234567890.123456" {
+		t.Errorf("Expected event_ts to be '1234567890.123456', got %s", event.EventTS)
+	}
+
+	if event.Channel != "C123456789" {
+		t.Errorf("Expected channel to be 'C123456789', got %s", event.Channel)
+	}
+
+	if event.MessageTs != "1234567890.123456" {
+		t.Errorf("Expected message_ts to be '1234567890.123456', got %s", event.MessageTs)
+	}
+}
+
+func TestParseEventAPIEntityDetailsRequested(t *testing.T) {
+	rawE := []byte(`
+		{
+			"token": "test-token",
+			"team_id": "T123456789",
+			"api_app_id": "A123456789",
+			"event": {
+				"type": "entity_details_requested",
+				"user": "U123456789",
+				"trigger_id": "1234567890123.1234567890123.abcdef01234567890abcdef012345689",
+				"user_locale": "en-US",
+				"entity_url": "https://example.com/incidents/123",
+				"external_ref": {
+					"id": "123"
+				},
+				"link": {
+					"url": "https://example.com/incidents/123",
+					"domain": "example.com"
+				},
+				"app_unfurl_url": "https://example.com/incidents/123",
+				"channel": "C123456789",
+				"message_ts": "1234567890.123456",
+				"event_ts": "1234567890.123456"
+			},
+			"type": "event_callback",
+			"event_id": "Ev123456789",
+			"event_time": 1234567890
+		}
+	`)
+
+	parsedEvent, err := ParseEvent(rawE, OptionNoVerifyToken())
+	if err != nil {
+		t.Errorf("Failed to parse EntityDetailsRequestedEvent: %v", err)
+	}
+
+	if parsedEvent.Type != "event_callback" {
+		t.Errorf("Expected outer event type to be 'event_callback', got %s", parsedEvent.Type)
+	}
+
+	if parsedEvent.InnerEvent.Type != "entity_details_requested" {
+		t.Errorf("Expected inner event type to be 'entity_details_requested', got %s", parsedEvent.InnerEvent.Type)
+	}
+
+	innerEvent, ok := parsedEvent.InnerEvent.Data.(*EntityDetailsRequestedEvent)
+	if !ok {
+		t.Errorf("Expected inner event data to be *EntityDetailsRequestedEvent, got %T", parsedEvent.InnerEvent.Data)
+	}
+
+	if innerEvent.Type != "entity_details_requested" {
+		t.Errorf("Expected inner event type to be 'entity_details_requested', got %s", innerEvent.Type)
+	}
+
+	if innerEvent.User != "U123456789" {
+		t.Errorf("Expected user to be 'U123456789', got %s", innerEvent.User)
+	}
+
+	if innerEvent.ExternalRef.ID != "123" {
+		t.Errorf("Expected external_ref.id to be '123', got %s", innerEvent.ExternalRef.ID)
+	}
+
+	if innerEvent.TriggerID != "1234567890123.1234567890123.abcdef01234567890abcdef012345689" {
+		t.Errorf("Expected trigger_id to be '1234567890123.1234567890123.abcdef01234567890abcdef012345689', got %s", innerEvent.TriggerID)
+	}
+
+	if innerEvent.EventTS != "1234567890.123456" {
+		t.Errorf("Expected event_ts to be '1234567890.123456', got %s", innerEvent.EventTS)
+	}
+
+	if innerEvent.Link.Domain != "example.com" {
+		t.Errorf("Expected link.domain to be 'example.com', got %s", innerEvent.Link.Domain)
+	}
 }
