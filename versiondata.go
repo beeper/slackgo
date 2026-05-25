@@ -56,10 +56,7 @@ func (api *Client) FetchVersionData(ctx context.Context) error {
 	req.Header.Set("Sec-Fetch-Site", "none")
 	req.Header.Set("Sec-Fetch-User", "?1")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0")
-	for _, c := range api.cookies {
-		req.AddCookie(c)
-	}
+	addCookies(req, api.cookies)
 	resp, err := api.httpclient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)

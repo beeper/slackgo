@@ -464,6 +464,7 @@ func (api *Client) UploadToURLB(ctx context.Context, fu *FileUploadURL, mimeType
 	}
 	req.Header.Set("Content-Type", mp.FormDataContentType())
 	req.Header.Set("Origin", "https://app.slack.com")
+	req.Header.Set("User-Agent", BrowserUserAgent)
 	resp, err := api.httpclient.Do(req)
 	if err != nil {
 		return err
