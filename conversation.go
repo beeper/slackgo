@@ -595,6 +595,47 @@ func (api *Client) GetConversationInfoContext(ctx context.Context, input *GetCon
 	return &response.Channel, response.Err()
 }
 
+// ConversationRetention represents a conversation's message retention policy.
+// Type uses 1 = never delete, 2 = delete after Duration days (Slack's preset
+// "keep for N days" options), 3 = custom timeline (also delete after Duration),
+// 0 = inherit the workspace default. Duration is in days.
+type ConversationRetention struct {
+	Type     int `json:"retention_type"`
+	Duration int `json:"retention_duration"`
+}
+
+type getConversationRetentionResponse struct {
+	SlackResponse
+	Retention ConversationRetention `json:"retention"`
+}
+
+// GetConversationRetention retrieves a conversation's message retention policy.
+// For more details, see GetConversationRetentionContext documentation.
+func (api *Client) GetConversationRetention(channelID string) (*ConversationRetention, error) {
+	return api.GetConversationRetentionContext(context.Background(), channelID)
+}
+
+// GetConversationRetentionContext retrieves a conversation's message retention
+// policy with a custom context. This uses the undocumented conversations.getRetention
+// method that the Slack web client calls; unlike admin.conversations.getCustomRetention
+// it works with a regular user token. It returns the "not_paid" error on workspaces
+// without the custom-retention feature.
+func (api *Client) GetConversationRetentionContext(ctx context.Context, channelID string) (*ConversationRetention, error) {
+	values := url.Values{
+		"token":   {api.token},
+		"channel": {channelID},
+	}
+	response := &getConversationRetentionResponse{}
+	err := api.postMethod(ctx, "conversations.getRetention", values, response)
+	if err != nil {
+		return nil, err
+	}
+	if err := response.Err(); err != nil {
+		return nil, err
+	}
+	return &response.Retention, nil
+}
+
 // LeaveConversation leaves a conversation.
 // For more details, see LeaveConversationContext documentation.
 func (api *Client) LeaveConversation(channelID string) (bool, error) {
