@@ -238,6 +238,8 @@ func (e *RichTextSection) UnmarshalJSON(b []byte) error {
 			elem = &RichTextSectionEmojiElement{}
 		case RTSELink:
 			elem = &RichTextSectionLinkElement{}
+		case RTSEMessageMention:
+			elem = &RichTextSectionMessageMentionElement{}
 		case RTSETeam:
 			elem = &RichTextSectionTeamElement{}
 		case RTSEUserGroup:
@@ -301,16 +303,17 @@ func NewRichTextSection(elements ...RichTextSectionElement) *RichTextSection {
 type RichTextSectionElementType string
 
 const (
-	RTSEBroadcast RichTextSectionElementType = "broadcast"
-	RTSEChannel   RichTextSectionElementType = "channel"
-	RTSEColor     RichTextSectionElementType = "color"
-	RTSEDate      RichTextSectionElementType = "date"
-	RTSEEmoji     RichTextSectionElementType = "emoji"
-	RTSELink      RichTextSectionElementType = "link"
-	RTSETeam      RichTextSectionElementType = "team"
-	RTSEText      RichTextSectionElementType = "text"
-	RTSEUser      RichTextSectionElementType = "user"
-	RTSEUserGroup RichTextSectionElementType = "usergroup"
+	RTSEBroadcast      RichTextSectionElementType = "broadcast"
+	RTSEChannel        RichTextSectionElementType = "channel"
+	RTSEColor          RichTextSectionElementType = "color"
+	RTSEDate           RichTextSectionElementType = "date"
+	RTSEEmoji          RichTextSectionElementType = "emoji"
+	RTSELink           RichTextSectionElementType = "link"
+	RTSEMessageMention RichTextSectionElementType = "message_mention"
+	RTSETeam           RichTextSectionElementType = "team"
+	RTSEText           RichTextSectionElementType = "text"
+	RTSEUser           RichTextSectionElementType = "user"
+	RTSEUserGroup      RichTextSectionElementType = "usergroup"
 
 	RTSEUnknown RichTextSectionElementType = "unknown"
 )
@@ -424,6 +427,34 @@ func NewRichTextSectionLinkElement(url, text string, style *RichTextSectionTextS
 		URL:   url,
 		Text:  text,
 		Style: style,
+	}
+}
+
+// RichTextSectionMessageMentionElement represents a link to a specific Slack
+// message (e.g. pasting a message permalink into the composer).
+type RichTextSectionMessageMentionElement struct {
+	Type      RichTextSectionElementType `json:"type"`
+	ChannelID string                     `json:"channel_id"`
+	MessageTS string                     `json:"message_ts"`
+	AuthorID  string                     `json:"author_id,omitempty"`
+	Text      string                     `json:"text,omitempty"`
+	URL       string                     `json:"url,omitempty"`
+	Style     *RichTextSectionTextStyle  `json:"style,omitempty"`
+}
+
+func (r RichTextSectionMessageMentionElement) RichTextSectionElementType() RichTextSectionElementType {
+	return r.Type
+}
+
+func NewRichTextSectionMessageMentionElement(channelID, messageTS, authorID, text, url string, style *RichTextSectionTextStyle) *RichTextSectionMessageMentionElement {
+	return &RichTextSectionMessageMentionElement{
+		Type:      RTSEMessageMention,
+		ChannelID: channelID,
+		MessageTS: messageTS,
+		AuthorID:  authorID,
+		Text:      text,
+		URL:       url,
+		Style:     style,
 	}
 }
 
