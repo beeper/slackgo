@@ -217,6 +217,23 @@ func TestRichTextSection_UnmarshalJSON(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			[]byte(`{"type": "rich_text_section","elements":[{"type":"message_mention","author_id":"U0B77S2CHHN","channel_id":"C02FK7Z44","message_ts":"1783475040.888939","text":"https://example.slack.com/archives/C02FK7Z44/p1783475040888939","url":"https://example.slack.com/archives/C02FK7Z44/p1783475040888939"}]}`),
+			RichTextSection{
+				Type: RTESection,
+				Elements: []RichTextSectionElement{
+					&RichTextSectionMessageMentionElement{
+						Type:      RTSEMessageMention,
+						AuthorID:  "U0B77S2CHHN",
+						ChannelID: "C02FK7Z44",
+						MessageTS: "1783475040.888939",
+						Text:      "https://example.slack.com/archives/C02FK7Z44/p1783475040888939",
+						URL:       "https://example.slack.com/archives/C02FK7Z44/p1783475040888939",
+					},
+				},
+			},
+			nil,
+		},
 	}
 	for _, tc := range cases {
 		var actual RichTextSection
