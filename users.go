@@ -618,11 +618,11 @@ func (api *Client) ClientBootContext(ctx context.Context) (response *ClientBootR
 	return response, nil
 }
 
-func (api *Client) ClientUserBootContext(ctx context.Context, minUpdated time.Time) (response *ClientUserBootResponse, err error) {
+func (api *Client) ClientUserBootContext(ctx context.Context, minUpdated time.Time, omitChannels bool) (response *ClientUserBootResponse, err error) {
 	values := url.Values{
 		"token":                          {api.token},
 		"version_all_channels":           {"false"},
-		"omit_channels":                  {"false"},
+		"omit_channels":                  {strconv.FormatBool(omitChannels)},
 		"include_min_version_bump_check": {"0"},
 	}
 	xcp := &XClientParams{
