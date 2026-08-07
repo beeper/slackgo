@@ -618,20 +618,11 @@ func (api *Client) ClientBootContext(ctx context.Context) (response *ClientBootR
 	return response, nil
 }
 
-type ClientUserBootOptions struct {
-	MinUpdated   time.Time
-	OmitChannels bool
-}
-
-func (api *Client) ClientUserBootContext(ctx context.Context, minUpdated time.Time) (response *ClientUserBootResponse, err error) {
-	return api.ClientUserBootWithOptionsContext(ctx, ClientUserBootOptions{MinUpdated: minUpdated})
-}
-
-func (api *Client) ClientUserBootWithOptionsContext(ctx context.Context, opts ClientUserBootOptions) (response *ClientUserBootResponse, err error) {
+func (api *Client) ClientUserBootContext(ctx context.Context, minUpdated time.Time, omitChannels bool) (response *ClientUserBootResponse, err error) {
 	values := url.Values{
 		"token":                          {api.token},
 		"version_all_channels":           {"false"},
-		"omit_channels":                  {strconv.FormatBool(opts.OmitChannels)},
+		"omit_channels":                  {strconv.FormatBool(omitChannels)},
 		"include_min_version_bump_check": {"0"},
 	}
 	xcp := &XClientParams{
@@ -646,9 +637,9 @@ func (api *Client) ClientUserBootWithOptionsContext(ctx context.Context, opts Cl
 	} else {
 		xcp.AppName = "client"
 	}
-	if !opts.MinUpdated.IsZero() {
+	if !minUpdated.IsZero() {
 		xcp.Reason = "deferred-data"
-		values.Set("min_channel_updated", strconv.FormatInt(opts.MinUpdated.UnixMilli(), 10))
+		values.Set("min_channel_updated", strconv.FormatInt(minUpdated.UnixMilli(), 10))
 		values.Set("include_min_version_bump_check", "1")
 	}
 	xcp.Set(values)
