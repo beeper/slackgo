@@ -186,6 +186,17 @@ type ClientUserBootSubteams struct {
 type TeamPrefs struct {
 	MsgEditWindowMins    *int  `json:"msg_edit_window_mins,omitempty"`
 	AllowMessageDeletion *bool `json:"allow_message_deletion,omitempty"`
+
+	// Message retention defaults. The *_type fields use 1 = retain all messages,
+	// 2 = delete after the matching *_duration (in days); other values mean no
+	// automatic deletion. Public channels use RetentionType/RetentionDuration,
+	// private channels use the Group* fields and DMs/MPIMs use the DM* fields.
+	RetentionType          int `json:"retention_type,omitempty"`
+	RetentionDuration      int `json:"retention_duration,omitempty"`
+	GroupRetentionType     int `json:"group_retention_type,omitempty"`
+	GroupRetentionDuration int `json:"group_retention_duration,omitempty"`
+	DMRetentionType        int `json:"dm_retention_type,omitempty"`
+	DMRetentionDuration    int `json:"dm_retention_duration,omitempty"`
 }
 
 type BootTeam struct {
