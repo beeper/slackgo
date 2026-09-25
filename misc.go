@@ -286,13 +286,15 @@ func downloadFile(ctx context.Context, client httpClient, token string, download
 		return fmt.Errorf("received empty download URL")
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, &bytes.Buffer{})
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
 	if err != nil {
 		return err
 	}
+	if req.URL.Scheme != "https" || req.URL.Host != "files.slack.com" {
+		return fmt.Errorf("invalid authenticated file download URL: %s", req.URL)
+	}
 
-	var bearer = "Bearer " + token
-	req.Header.Add("Authorization", bearer)
+	req.Header.Add("Authorization", "Bearer "+token)
 	addCookies(req, cookies)
 	resp, err := client.Do(req)
 	if err != nil {
