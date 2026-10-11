@@ -462,10 +462,19 @@ func NewRichTextSectionMessageMentionElement(channelID, messageTS, authorID, tex
 }
 
 type RichTextSectionAttachmentMentionElement struct {
-	Type  RichTextSectionElementType `json:"type"`
-	URL   string                     `json:"url"`
-	Text  string                     `json:"text,omitempty"`
-	Style *RichTextSectionTextStyle  `json:"style,omitempty"`
+	Type                   RichTextSectionElementType `json:"type"`
+	URL                    string                     `json:"url"`
+	Text                   string                     `json:"text,omitempty"`
+	AppID                  string                     `json:"app_id,omitempty"`
+	EntityID               string                     `json:"entity_id,omitempty"`
+	IconURL                string                     `json:"icon_url,omitempty"`
+	IconName               string                     `json:"icon_name,omitempty"`
+	ChannelID              string                     `json:"channel_id,omitempty"`
+	TS                     string                     `json:"ts,omitempty"`
+	FullSizePreviewEnabled bool                       `json:"full_size_preview_enabled,omitempty"`
+	ReferenceObjectType    string                     `json:"reference_object_type,omitempty"`
+	ProductName            string                     `json:"product_name,omitempty"`
+	Style                  *RichTextSectionTextStyle  `json:"style,omitempty"`
 }
 
 func (r RichTextSectionAttachmentMentionElement) RichTextSectionElementType() RichTextSectionElementType {
