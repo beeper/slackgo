@@ -248,6 +248,8 @@ func (e *RichTextSection) UnmarshalJSON(b []byte) error {
 			elem = &RichTextSectionDateElement{}
 		case RTSEBroadcast:
 			elem = &RichTextSectionBroadcastElement{}
+		case RTSEAttachmentMention:
+			elem = &RichTextSectionAttachmentMentionElement{}
 		case RTSEColor:
 			elem = &RichTextSectionColorElement{}
 		default:
@@ -303,17 +305,18 @@ func NewRichTextSection(elements ...RichTextSectionElement) *RichTextSection {
 type RichTextSectionElementType string
 
 const (
-	RTSEBroadcast      RichTextSectionElementType = "broadcast"
-	RTSEChannel        RichTextSectionElementType = "channel"
-	RTSEColor          RichTextSectionElementType = "color"
-	RTSEDate           RichTextSectionElementType = "date"
-	RTSEEmoji          RichTextSectionElementType = "emoji"
-	RTSELink           RichTextSectionElementType = "link"
-	RTSEMessageMention RichTextSectionElementType = "message_mention"
-	RTSETeam           RichTextSectionElementType = "team"
-	RTSEText           RichTextSectionElementType = "text"
-	RTSEUser           RichTextSectionElementType = "user"
-	RTSEUserGroup      RichTextSectionElementType = "usergroup"
+	RTSEAttachmentMention RichTextSectionElementType = "attachment_mention"
+	RTSEBroadcast         RichTextSectionElementType = "broadcast"
+	RTSEChannel           RichTextSectionElementType = "channel"
+	RTSEColor             RichTextSectionElementType = "color"
+	RTSEDate              RichTextSectionElementType = "date"
+	RTSEEmoji             RichTextSectionElementType = "emoji"
+	RTSELink              RichTextSectionElementType = "link"
+	RTSEMessageMention    RichTextSectionElementType = "message_mention"
+	RTSETeam              RichTextSectionElementType = "team"
+	RTSEText              RichTextSectionElementType = "text"
+	RTSEUser              RichTextSectionElementType = "user"
+	RTSEUserGroup         RichTextSectionElementType = "usergroup"
 
 	RTSEUnknown RichTextSectionElementType = "unknown"
 )
@@ -455,6 +458,35 @@ func NewRichTextSectionMessageMentionElement(channelID, messageTS, authorID, tex
 		Text:      text,
 		URL:       url,
 		Style:     style,
+	}
+}
+
+type RichTextSectionAttachmentMentionElement struct {
+	Type                   RichTextSectionElementType `json:"type"`
+	URL                    string                     `json:"url"`
+	Text                   string                     `json:"text,omitempty"`
+	AppID                  string                     `json:"app_id,omitempty"`
+	EntityID               string                     `json:"entity_id,omitempty"`
+	IconURL                string                     `json:"icon_url,omitempty"`
+	IconName               string                     `json:"icon_name,omitempty"`
+	ChannelID              string                     `json:"channel_id,omitempty"`
+	TS                     string                     `json:"ts,omitempty"`
+	FullSizePreviewEnabled bool                       `json:"full_size_preview_enabled,omitempty"`
+	ReferenceObjectType    string                     `json:"reference_object_type,omitempty"`
+	ProductName            string                     `json:"product_name,omitempty"`
+	Style                  *RichTextSectionTextStyle  `json:"style,omitempty"`
+}
+
+func (r RichTextSectionAttachmentMentionElement) RichTextSectionElementType() RichTextSectionElementType {
+	return r.Type
+}
+
+func NewRichTextSectionAttachmentMentionElement(url, text string, style *RichTextSectionTextStyle) *RichTextSectionAttachmentMentionElement {
+	return &RichTextSectionAttachmentMentionElement{
+		Type:  RTSEAttachmentMention,
+		URL:   url,
+		Text:  text,
+		Style: style,
 	}
 }
 
