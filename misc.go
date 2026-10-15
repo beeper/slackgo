@@ -281,32 +281,41 @@ func fileUploadReq(ctx context.Context, path string, r io.Reader) (*http.Request
 	return req, nil
 }
 
-func downloadFile(ctx context.Context, client httpClient, token string, downloadURL string, writer io.Writer, d Debug, cookies []*http.Cookie) error {
+func openFileDownload(ctx context.Context, client httpClient, token string, downloadURL string, d Debug, cookies []*http.Cookie) (*http.Response, error) {
 	if downloadURL == "" {
-		return fmt.Errorf("received empty download URL")
+		return nil, fmt.Errorf("received empty download URL")
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if req.URL.Scheme != "https" || req.URL.Host != "files.slack.com" {
-		return fmt.Errorf("invalid authenticated file download URL: %s", req.URL)
+		return nil, fmt.Errorf("invalid authenticated file download URL: %s", req.URL)
 	}
 
 	req.Header.Add("Authorization", "Bearer "+token)
 	addCookies(req, cookies)
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	defer resp.Body.Close()
 
 	err = checkStatusCode(resp, d)
 	if err != nil {
+		resp.Body.Close()
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func downloadFile(ctx context.Context, client httpClient, token string, downloadURL string, writer io.Writer, d Debug, cookies []*http.Cookie) error {
+	resp, err := openFileDownload(ctx, client, token, downloadURL, d, cookies)
+	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	_, err = io.Copy(writer, resp.Body)
 
