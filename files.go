@@ -283,6 +283,12 @@ func (api *Client) GetFileContext(ctx context.Context, downloadURL string, write
 	return downloadFile(ctx, api.httpclient, api.token, downloadURL, writer, api, api.cookies)
 }
 
+// GetFileResponseContext opens a given file's private download URL and returns the response.
+// The caller must close the response body.
+func (api *Client) GetFileResponseContext(ctx context.Context, downloadURL string) (*http.Response, error) {
+	return openFileDownload(ctx, api.httpclient, api.token, downloadURL, api, api.cookies)
+}
+
 // GetFiles retrieves all files according to the parameters given.
 // For more details, see GetFilesContext documentation.
 func (api *Client) GetFiles(params GetFilesParameters) ([]File, *Paging, error) {
