@@ -85,3 +85,22 @@ type ChannelUpdateInfo struct {
 	IsMpim    bool `json:"is_mpim"`
 	IsPrivate bool `json:"is_private"`
 }
+
+type ThreadSubscription struct {
+	Type            string `json:"type"`
+	Channel         string `json:"channel"`
+	ThreadTimestamp string `json:"thread_ts"`
+	DateCreated     int    `json:"date_created"`
+	Active          bool   `json:"active"`
+	LastRead        string `json:"last_read"`
+}
+
+type ThreadInfoEvent struct {
+	Type           string             `json:"type"`
+	Subscription   ThreadSubscription `json:"subscription"`
+	EventTimestamp string             `json:"event_ts"`
+}
+
+type ThreadSubscribedEvent ThreadInfoEvent
+type ThreadUnsubscribedEvent ThreadInfoEvent
+type ThreadMarkedEvent ThreadInfoEvent

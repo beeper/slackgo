@@ -1026,6 +1026,24 @@ func (api *Client) MarkConversationContext(ctx context.Context, channel, ts stri
 	return response.Err()
 }
 
+func (api *Client) MarkThreadContext(ctx context.Context, channel, threadTS, ts string) error {
+	values := url.Values{
+		"token":     {api.token},
+		"channel":   {channel},
+		"thread_ts": {threadTS},
+		"ts":        {ts},
+		"read":      {"1"},
+	}
+
+	response := &SlackResponse{}
+
+	err := api.postMethod(ctx, "subscriptions.thread.mark", values, response)
+	if err != nil {
+		return err
+	}
+	return response.Err()
+}
+
 // createChannelCanvasParams contains arguments for CreateChannelCanvas method call.
 type createChannelCanvasParams struct {
 	title           string

@@ -695,6 +695,10 @@ var EventMapping = map[string]interface{}{
 
 	"channel_updated": ChannelUpdateEvent{},
 
+	"thread_marked":       ThreadMarkedEvent{},
+	"thread_subscribed":   ThreadSubscribedEvent{},
+	"thread_unsubscribed": ThreadUnsubscribedEvent{},
+
 	"sh_room_join":   SHRoomJoinEvent{},
 	"sh_room_leave":  SHRoomLeaveEvent{},
 	"sh_room_update": SHRoomUpdateEvent{},
