@@ -98,6 +98,24 @@ func (rtm *RTM) SendMessage(msg *OutgoingMessage) {
 	rtm.outgoingMessages <- *msg
 }
 
+// TrySendMessage is like SendMessage, but drops the message and returns false
+// instead of blocking when the outgoing queue is full. The queue is only
+// drained while the websocket is connected, so SendMessage blocks
+// indefinitely if the connection is down or was never started.
+func (rtm *RTM) TrySendMessage(msg *OutgoingMessage) bool {
+	if msg == nil {
+		rtm.Debugln("Error: Attempted to TrySendMessage(nil)")
+		return false
+	}
+
+	select {
+	case rtm.outgoingMessages <- *msg:
+		return true
+	default:
+		return false
+	}
+}
+
 func (rtm *RTM) resetDeadman() {
 	rtm.pingDeadman.Reset(deadmanDuration(rtm.pingInterval))
 }
