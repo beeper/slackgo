@@ -76,6 +76,7 @@ type Properties struct {
 	Tabs                []Tab         `json:"tabs"`
 	ThreadsRestrictedTo RestrictedTo  `json:"threads_restricted_to"`
 	RecordChannel       RecordChannel `json:"record_channel"`
+	HasCustomMpdmName   bool          `json:"has_custom_mpdm_name"`
 }
 
 type RestrictedTo struct {
