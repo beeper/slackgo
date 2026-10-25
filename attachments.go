@@ -100,6 +100,7 @@ type Attachment struct {
 	Blocks Blocks `json:"blocks,omitempty"`
 
 	IsMsgUnfurl   bool            `json:"is_msg_unfurl,omitempty"`
+	IsAppUnfurl   bool            `json:"is_app_unfurl,omitempty"`
 	MessageBlocks []MessageBlocks `json:"message_blocks,omitempty"`
 
 	Footer     string `json:"footer,omitempty"`
