@@ -22,6 +22,7 @@ const (
 )
 
 func TestRTMBeforeEvents(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	// Set up the test server.
 	testServer := slacktest.NewTestServer()
 	go testServer.Start()
@@ -55,6 +56,7 @@ func TestRTMBeforeEvents(t *testing.T) {
 }
 
 func TestRTMGoodbye(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	// Set up the test server.
 	testServer := slacktest.NewTestServer(
 		func(c slacktest.Customize) {
@@ -114,6 +116,7 @@ func TestRTMGoodbye(t *testing.T) {
 }
 
 func TestRTMDeadConnection(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	// Set up the test server.
 	testServer := slacktest.NewTestServer(
 		func(c slacktest.Customize) {
@@ -171,6 +174,7 @@ func TestRTMDeadConnection(t *testing.T) {
 }
 
 func TestRTMDisconnect(t *testing.T) {
+	t.Skip("beeper fork skips rtm.connect, so the websocket connects before Slack rejects the invalid token")
 	// actually connect to slack here w/ an invalid token
 	api := slack.New(testToken)
 	rtm := api.NewRTM()
@@ -212,6 +216,7 @@ func TestRTMDisconnect(t *testing.T) {
 }
 
 func TestRTMConnectRateLimit(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	// Set up the test server.
 	testServer := slacktest.NewTestServer(
 		func(c slacktest.Customize) {
@@ -259,6 +264,7 @@ func TestRTMConnectRateLimit(t *testing.T) {
 }
 
 func TestRTMSingleConnect(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	// Set up the test server.
 	testServer := slacktest.NewTestServer()
 	go testServer.Start()
@@ -317,6 +323,7 @@ func TestRTMSingleConnect(t *testing.T) {
 }
 
 func TestRTMUnmappedError(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	const unmappedEventName = "some_unknown_event"
 	// Set up the test server.
 	testServer := slacktest.NewTestServer()

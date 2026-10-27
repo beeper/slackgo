@@ -801,10 +801,10 @@ func TestGetConversationReplies(t *testing.T) {
 	once.Do(startServer)
 	api := New("testing-token", OptionAPIURL("http://"+serverAddr+"/"))
 	params := GetConversationRepliesParameters{
-		ChannelID: "CXXXXXXXX",
-		Timestamp: "1234567890.123456",
+		GetConversationHistoryParameters: GetConversationHistoryParameters{ChannelID: "CXXXXXXXX"},
+		Timestamp:                        "1234567890.123456",
 	}
-	_, _, _, err := api.GetConversationReplies(&params)
+	_, err := api.GetConversationRepliesContext(context.Background(), &params)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 		return

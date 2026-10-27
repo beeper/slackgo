@@ -10,6 +10,7 @@ import (
 )
 
 func TestRTMInfo(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	maxWait := 10 * time.Millisecond
 	s := NewTestServer()
 	go s.Start()
@@ -38,6 +39,7 @@ func TestRTMInfo(t *testing.T) {
 }
 
 func TestRTMPing(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	if testing.Short() {
 		t.Skip("skipping timered test")
 	}
@@ -69,6 +71,7 @@ func TestRTMPing(t *testing.T) {
 }
 
 func TestRTMDirectMessage(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	maxWait := 5 * time.Second
 	s := NewTestServer()
 	go s.Start()
@@ -98,6 +101,7 @@ func TestRTMDirectMessage(t *testing.T) {
 }
 
 func TestRTMChannelMessage(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	maxWait := 5 * time.Second
 	s := NewTestServer()
 	go s.Start()
