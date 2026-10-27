@@ -1098,6 +1098,7 @@ func TestMessageMetadataDeleted(t *testing.T) {
 }
 
 func TestUserProfileChanged(t *testing.T) {
+	t.Skip("beeper fork overrides EventsAPIInnerEventMapping with slack.EventMapping, so this parses into the RTM event type")
 	rawE := []byte(`
 	{
 		"token": "whatever",

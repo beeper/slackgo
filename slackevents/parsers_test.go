@@ -227,6 +227,7 @@ func TestParseEventAPIAppMentionWithAssistantThread(t *testing.T) {
 }
 
 func TestParseEventAPIMessageIMWithAssistantThread(t *testing.T) {
+	t.Skip("beeper fork overrides EventsAPIInnerEventMapping with slack.EventMapping, so this parses into the RTM event type")
 	eventsAPIRawCallbackEvent := `
 		{
 			"token": "XXYYZZ",
@@ -286,6 +287,7 @@ func TestParseEventAPIMessageIMWithAssistantThread(t *testing.T) {
 }
 
 func TestParseEventAPIMessageChannelWithAssistantThread(t *testing.T) {
+	t.Skip("beeper fork overrides EventsAPIInnerEventMapping with slack.EventMapping, so this parses into the RTM event type")
 	eventsAPIRawCallbackEvent := `
 		{
 			"token": "XXYYZZ",
@@ -345,6 +347,7 @@ func TestParseEventAPIMessageChannelWithAssistantThread(t *testing.T) {
 }
 
 func TestParseEventAPIMessageMPIMWithAssistantThread(t *testing.T) {
+	t.Skip("beeper fork overrides EventsAPIInnerEventMapping with slack.EventMapping, so this parses into the RTM event type")
 	eventsAPIRawCallbackEvent := `
 		{
 			"token": "XXYYZZ",
@@ -404,6 +407,7 @@ func TestParseEventAPIMessageMPIMWithAssistantThread(t *testing.T) {
 }
 
 func TestParseEventAPIMessageGroupWithAssistantThread(t *testing.T) {
+	t.Skip("beeper fork overrides EventsAPIInnerEventMapping with slack.EventMapping, so this parses into the RTM event type")
 	eventsAPIRawCallbackEvent := `
 		{
 			"token": "XXYYZZ",

@@ -77,6 +77,7 @@ func TestGetSeenOutboundMessages(t *testing.T) {
 }
 
 func TestGetSeenInboundMessages(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	maxWait := 5 * time.Second
 	s := NewTestServer()
 	s.Start()
@@ -106,6 +107,7 @@ func TestGetSeenInboundMessages(t *testing.T) {
 }
 
 func TestSendChannelInvite(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	maxWait := 5 * time.Second
 	s := NewTestServer()
 	s.Start()
@@ -135,6 +137,7 @@ func TestSendChannelInvite(t *testing.T) {
 }
 
 func TestSendGroupInvite(t *testing.T) {
+	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
 	maxWait := 5 * time.Second
 	s := NewTestServer()
 	s.Start()
