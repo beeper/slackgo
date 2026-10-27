@@ -174,7 +174,7 @@ func TestRTMDeadConnection(t *testing.T) {
 }
 
 func TestRTMDisconnect(t *testing.T) {
-	t.Skip("beeper fork dials wss-primary.slack.com directly instead of the rtm.connect URL, so RTM can't reach the test server")
+	t.Skip("beeper fork skips rtm.connect, so the websocket connects before Slack rejects the invalid token")
 	// actually connect to slack here w/ an invalid token
 	api := slack.New(testToken)
 	rtm := api.NewRTM()
