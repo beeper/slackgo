@@ -98,6 +98,20 @@ func (rtm *RTM) SendMessage(msg *OutgoingMessage) {
 	rtm.outgoingMessages <- *msg
 }
 
+func (rtm *RTM) TrySendMessage(msg *OutgoingMessage) bool {
+	if msg == nil {
+		rtm.Debugln("Error: Attempted to TrySendMessage(nil)")
+		return false
+	}
+
+	select {
+	case rtm.outgoingMessages <- *msg:
+		return true
+	default:
+		return false
+	}
+}
+
 func (rtm *RTM) resetDeadman() {
 	rtm.pingDeadman.Reset(deadmanDuration(rtm.pingInterval))
 }
