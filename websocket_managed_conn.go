@@ -224,6 +224,7 @@ func (rtm *RTM) startRTMAndDial(useRTMStart bool) (info *Info, _ *websocket.Conn
 	//}
 	// TODO replace hardcoded url with ???.getWebsocketURL
 	u := rtm.reconnectURL
+	rtm.connectedWithReconnectURL = u != ""
 	if u == "" {
 		u = (&stdurl.URL{
 			Scheme: "wss",
@@ -468,7 +469,9 @@ func (rtm *RTM) handleRawEvent(rawEvent json.RawMessage) string {
 	case rtmEventTypeAck:
 		rtm.handleAck(rawEvent)
 	case rtmEventTypeHello:
-		rtm.IncomingEvents <- RTMEvent{"hello", &HelloEvent{}}
+		rtm.IncomingEvents <- RTMEvent{"hello", &HelloEvent{
+			Resume: rtm.connectedWithReconnectURL,
+		}}
 	case rtmEventTypePong:
 		rtm.handlePong(rawEvent)
 	case rtmEventTypeReconnectURL:

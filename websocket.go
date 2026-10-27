@@ -35,7 +35,8 @@ type RTM struct {
 	disconnectedm    *sync.Once
 	forcePing        chan bool
 
-	reconnectURL string
+	reconnectURL              string
+	connectedWithReconnectURL bool
 
 	// UserDetails upon connection
 	info *Info

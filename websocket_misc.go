@@ -44,7 +44,9 @@ type RTMErrorEvent struct {
 }
 
 // HelloEvent represents the hello event
-type HelloEvent struct{}
+type HelloEvent struct {
+	Resume bool `json:"resume"`
+}
 
 // PresenceChangeEvent represents the presence change event
 type PresenceChangeEvent struct {
