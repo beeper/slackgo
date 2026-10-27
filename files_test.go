@@ -167,7 +167,7 @@ func urlFileUploadHandler(rw http.ResponseWriter, r *http.Request) {
 func completeURLUpload(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	response, _ := json.Marshal(CompleteUploadExternalResponse{
-		Files: []FileSummary{
+		Files: []File{
 			{
 				ID:    "RandomID",
 				Title: "",
@@ -373,7 +373,7 @@ func TestCompleteUploadExternalContext(t *testing.T) {
 				},
 			},
 			wantResponse: CompleteUploadExternalResponse{
-				Files: []FileSummary{
+				Files: []File{
 					{
 						ID: "ID1",
 					},
@@ -401,7 +401,7 @@ func TestCompleteUploadExternalContext(t *testing.T) {
 				ThreadTimestamp: "1234567890.123456",
 			},
 			wantResponse: CompleteUploadExternalResponse{
-				Files: []FileSummary{
+				Files: []File{
 					{
 						ID: "ID1",
 					},
@@ -434,7 +434,7 @@ func TestCompleteUploadExternalContext(t *testing.T) {
 				},
 			},
 			wantResponse: CompleteUploadExternalResponse{
-				Files: []FileSummary{
+				Files: []File{
 					{
 						ID: "ID1",
 					},
