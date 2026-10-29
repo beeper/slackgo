@@ -33,7 +33,6 @@ type RTM struct {
 	killChannel      chan bool
 	disconnected     chan struct{}
 	disconnectedm    *sync.Once
-	forcePing        chan bool
 
 	reconnectURL              string
 	connectedWithReconnectURL bool
