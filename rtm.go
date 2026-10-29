@@ -126,7 +126,6 @@ func (api *Client) NewRTM(options ...RTMOption) *RTM {
 		killChannel:      make(chan bool, 1),
 		disconnected:     make(chan struct{}),
 		disconnectedm:    &sync.Once{},
-		forcePing:        make(chan bool),
 		idGen:            NewSafeID(1),
 		mu:               &sync.Mutex{},
 	}

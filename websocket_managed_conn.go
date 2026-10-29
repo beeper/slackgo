@@ -3,7 +3,6 @@ package slack
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/cookiejar"
 	stdurl "net/url"
@@ -290,8 +289,7 @@ func (rtm *RTM) killConnection(intentional bool, cause error) (err error) {
 }
 
 // handleEvents is a blocking function that handles all events. This sends
-// pings when asked to (on rtm.forcePing) and upon every given elapsed
-// interval. This also sends outgoing messages that are received from the RTM's
+// pings at regular intervals. This also sends outgoing messages that are received from the RTM's
 // outgoingMessages channel. This also handles incoming raw events from the RTM
 // rawEvents channel.
 func (rtm *RTM) handleEvents(events chan json.RawMessage) {
@@ -309,11 +307,6 @@ func (rtm *RTM) handleEvents(events chan json.RawMessage) {
 			return
 		// send pings on ticker interval
 		case <-ticker.C:
-			if err := rtm.ping(); err != nil {
-				_ = rtm.killConnection(false, err)
-				return
-			}
-		case <-rtm.forcePing:
 			if err := rtm.ping(); err != nil {
 				_ = rtm.killConnection(false, err)
 				return
@@ -422,19 +415,7 @@ func (rtm *RTM) receiveIncomingEvent(events chan json.RawMessage, conn *websocke
 	}
 
 	switch {
-	case err == io.ErrUnexpectedEOF:
-		// EOF's don't seem to signify a failed connection so instead we ignore
-		// them here and detect a failed connection upon attempting to send a
-		// 'PING' message
-
-		// trigger a 'PING' to detect potential websocket disconnect
-		select {
-		case rtm.forcePing <- true:
-		case <-rtm.disconnected:
-		}
 	case err != nil:
-		// All other errors from ReadJSON come from NextReader, and should
-		// kill the read loop and force a reconnect.
 		rtm.IncomingEvents <- RTMEvent{"incoming_error", &IncomingEventError{
 			ErrorObj: err,
 		}}
