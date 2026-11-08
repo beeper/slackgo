@@ -250,6 +250,8 @@ func (e *RichTextSection) UnmarshalJSON(b []byte) error {
 			elem = &RichTextSectionBroadcastElement{}
 		case RTSEAttachmentMention:
 			elem = &RichTextSectionAttachmentMentionElement{}
+		case RTSECanvas:
+			elem = &RichTextSectionCanvasElement{}
 		case RTSEColor:
 			elem = &RichTextSectionColorElement{}
 		default:
@@ -307,6 +309,7 @@ type RichTextSectionElementType string
 const (
 	RTSEAttachmentMention RichTextSectionElementType = "attachment_mention"
 	RTSEBroadcast         RichTextSectionElementType = "broadcast"
+	RTSECanvas            RichTextSectionElementType = "canvas"
 	RTSEChannel           RichTextSectionElementType = "channel"
 	RTSEColor             RichTextSectionElementType = "color"
 	RTSEDate              RichTextSectionElementType = "date"
@@ -487,6 +490,22 @@ func NewRichTextSectionAttachmentMentionElement(url, text string, style *RichTex
 		URL:   url,
 		Text:  text,
 		Style: style,
+	}
+}
+
+type RichTextSectionCanvasElement struct {
+	Type   RichTextSectionElementType `json:"type"`
+	FileID string                     `json:"file_id"`
+}
+
+func (r RichTextSectionCanvasElement) RichTextSectionElementType() RichTextSectionElementType {
+	return r.Type
+}
+
+func NewRichTextSectionCanvasElement(fileID string) *RichTextSectionCanvasElement {
+	return &RichTextSectionCanvasElement{
+		Type:   RTSECanvas,
+		FileID: fileID,
 	}
 }
 
