@@ -154,6 +154,9 @@ type Msg struct {
 	Blocks Blocks `json:"blocks,omitempty"`
 	// permalink
 	Permalink string `json:"permalink,omitempty"`
+
+	// huddle_thread
+	Room *HuddleRoom `json:"room,omitempty"`
 }
 
 const (
