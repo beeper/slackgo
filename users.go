@@ -204,6 +204,7 @@ type ClientUserBootResponse struct {
 	Prefs ClientUserBootPrefs `json:"prefs"`
 
 	IsOpen   []string      `json:"is_open"`
+	Starred  []string      `json:"starred"`
 	Channels []BootChannel `json:"channels"`
 	IMs      []BootChannel `json:"ims"`
 
@@ -224,7 +225,6 @@ type ClientUserBootResponse struct {
 	RecommendedBuildVersion int64 `json:"recommended_build_version"`
 
 	// Uncertain types
-	//Starred               []string `json:"starred"`
 	//ReadOnlyChannels      []string `json:"read_only_channels"`
 	//NonThreadableChannels []string `json:"non_threadable_channels"`
 	//ThreadOnlyChannels    []string `json:"thread_only_channels"`
