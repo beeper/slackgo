@@ -35,3 +35,34 @@ func (api *Client) GetEmojiContext(ctx context.Context) (map[string]string, erro
 
 	return response.Emoji, nil
 }
+
+type CachedEmoji struct {
+	Name    string `json:"name"`
+	Value   string `json:"value"`
+	Updated int64  `json:"updated"`
+}
+
+type GetCachedEmojisParameters struct {
+	Token      string           `json:"token"`
+	UpdatedIDs map[string]int64 `json:"updated_ids"`
+}
+
+type GetCachedEmojisResponse struct {
+	SlackResponse
+	Results   []*CachedEmoji `json:"results"`
+	FailedIDs []string       `json:"failed_ids"`
+}
+
+func (api *Client) GetEmojisCacheContext(ctx context.Context, teamID string, params GetCachedEmojisParameters) (*GetCachedEmojisResponse, error) {
+	params.Token = api.token
+	var resp GetCachedEmojisResponse
+	err := api.postEdgeAPI(ctx, teamID, "emojis.info", params, &resp)
+	if err != nil {
+		return nil, err
+	}
+	err = resp.Err()
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
