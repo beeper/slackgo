@@ -243,7 +243,7 @@ func (rtm *RTM) startRTMAndDial(useRTMStart bool) (info *Info, _ *websocket.Conn
 		}).String()
 	}
 
-	rtm.Debugf("Dialing to websocket on url %s", u)
+	rtm.Debugf("Dialing to websocket on url %s", redactToken([]byte(u)))
 	// Only use HTTPS for connections to prevent MITM attacks on the connection.
 	upgradeHeader := http.Header{}
 	upgradeHeader.Add("Origin", "https://app.slack.com")
@@ -527,7 +527,7 @@ func (rtm *RTM) handleReconnectURL(event json.RawMessage) {
 	}
 
 	rtm.reconnectURL = p.URL
-	rtm.Client.log.Println("Updated reconnect URL to", p.URL)
+	rtm.Client.log.Println("Updated reconnect URL to", string(redactToken([]byte(p.URL))))
 }
 
 // handlePong handles an incoming 'PONG' message which should be in response to
