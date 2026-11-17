@@ -24,6 +24,9 @@ func (api *Client) CreateManifest(manifest *Manifest, token string) (*ManifestRe
 // CreateManifestContext creates an app from an app manifest with a custom context.
 // Slack API docs: https://api.slack.com/methods/apps.manifest.create
 func (api *Client) CreateManifestContext(ctx context.Context, manifest *Manifest, token string) (*ManifestResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if token == "" {
 		token = api.configToken
 	}
@@ -56,6 +59,9 @@ func (api *Client) DeleteManifest(token string, appId string) (*SlackResponse, e
 // DeleteManifestContext permanently deletes an app created through app manifests with a custom context.
 // Slack API docs: https://api.slack.com/methods/apps.manifest.delete
 func (api *Client) DeleteManifestContext(ctx context.Context, token string, appId string) (*SlackResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if token == "" {
 		token = api.configToken
 	}
@@ -83,6 +89,9 @@ func (api *Client) ExportManifest(token string, appId string) (*Manifest, error)
 // ExportManifestContext exports an app manifest from an existing app with a custom context.
 // Slack API docs: https://api.slack.com/methods/apps.manifest.export
 func (api *Client) ExportManifestContext(ctx context.Context, token string, appId string) (*Manifest, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if token == "" {
 		token = api.configToken
 	}
@@ -110,6 +119,9 @@ func (api *Client) UpdateManifest(manifest *Manifest, token string, appId string
 // UpdateManifestContext updates an app from an app manifest with a custom context.
 // Slack API docs: https://api.slack.com/methods/apps.manifest.update
 func (api *Client) UpdateManifestContext(ctx context.Context, manifest *Manifest, token string, appId string) (*UpdateManifestResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if token == "" {
 		token = api.configToken
 	}
@@ -143,6 +155,9 @@ func (api *Client) ValidateManifest(manifest *Manifest, token string, appId stri
 // ValidateManifestContext sends a request to apps.manifest.validate to validate your app manifest with a custom context.
 // Slack API docs: https://api.slack.com/methods/apps.manifest.validate
 func (api *Client) ValidateManifestContext(ctx context.Context, manifest *Manifest, token string, appId string) (*ManifestResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if token == "" {
 		token = api.configToken
 	}

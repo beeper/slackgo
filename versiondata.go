@@ -46,6 +46,9 @@ func (vd *VersionData) ToQuery() string {
 }
 
 func (api *Client) FetchVersionData(ctx context.Context) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://app.slack.com/client", nil)
 	if err != nil {
 		return fmt.Errorf("failed to prepare request: %w", err)

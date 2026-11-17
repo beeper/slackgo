@@ -67,6 +67,9 @@ func (api *Client) CreateCanvas(title string, documentContent DocumentContent) (
 // CreateCanvasContext creates a new canvas with a custom context.
 // Slack API docs: https://api.slack.com/methods/canvases.create
 func (api *Client) CreateCanvasContext(ctx context.Context, title string, documentContent DocumentContent) (string, error) {
+	if api == nil {
+		return "", ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -103,6 +106,9 @@ func (api *Client) DeleteCanvas(canvasID string) error {
 // DeleteCanvasContext deletes an existing canvas with a custom context.
 // Slack API docs: https://api.slack.com/methods/canvases.delete
 func (api *Client) DeleteCanvasContext(ctx context.Context, canvasID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":     {api.token},
 		"canvas_id": {canvasID},
@@ -129,6 +135,9 @@ func (api *Client) EditCanvas(params EditCanvasParams) error {
 // EditCanvasContext edits an existing canvas with a custom context.
 // Slack API docs: https://api.slack.com/methods/canvases.edit
 func (api *Client) EditCanvasContext(ctx context.Context, params EditCanvasParams) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":     {api.token},
 		"canvas_id": {params.CanvasID},
@@ -161,6 +170,9 @@ func (api *Client) SetCanvasAccess(params SetCanvasAccessParams) error {
 // SetCanvasAccessContext sets the access level to a canvas for specified entities with a custom context.
 // Slack API docs: https://api.slack.com/methods/canvases.access.set
 func (api *Client) SetCanvasAccessContext(ctx context.Context, params SetCanvasAccessParams) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":        {api.token},
 		"canvas_id":    {params.CanvasID},
@@ -202,6 +214,9 @@ func (api *Client) DeleteCanvasAccess(params DeleteCanvasAccessParams) error {
 // DeleteCanvasAccessContext removes access to a canvas for specified entities with a custom context.
 // Slack API docs: https://api.slack.com/methods/canvases.access.delete
 func (api *Client) DeleteCanvasAccessContext(ctx context.Context, params DeleteCanvasAccessParams) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":     {api.token},
 		"canvas_id": {params.CanvasID},
@@ -242,6 +257,9 @@ func (api *Client) LookupCanvasSections(params LookupCanvasSectionsParams) ([]Ca
 // LookupCanvasSectionsContext finds sections matching the provided criteria with a custom context.
 // Slack API docs: https://api.slack.com/methods/canvases.sections.lookup
 func (api *Client) LookupCanvasSectionsContext(ctx context.Context, params LookupCanvasSectionsParams) ([]CanvasSection, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":     {api.token},
 		"canvas_id": {params.CanvasID},

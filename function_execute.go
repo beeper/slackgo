@@ -35,6 +35,9 @@ func (api *Client) FunctionCompleteSuccess(functionExecutionId string, options .
 
 // FunctionCompleteSuccess indicates function is completed
 func (api *Client) FunctionCompleteSuccessContext(ctx context.Context, functionExecutionId string, options ...FunctionCompleteSuccessRequestOption) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	// More information: https://api.slack.com/methods/functions.completeSuccess
 	r := &FunctionCompleteSuccessRequest{
 		FunctionExecutionID: functionExecutionId,
@@ -67,6 +70,9 @@ func (api *Client) FunctionCompleteError(functionExecutionID string, errorMessag
 
 // FunctionCompleteErrorContext indicates function is completed with error
 func (api *Client) FunctionCompleteErrorContext(ctx context.Context, functionExecutionID string, errorMessage string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	// More information: https://api.slack.com/methods/functions.completeError
 	r := FunctionCompleteErrorRequest{
 		FunctionExecutionID: functionExecutionID,

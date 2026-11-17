@@ -258,6 +258,9 @@ func (api *Client) GetFileInfo(fileID string, count, page int) (*File, []Comment
 // GetFileInfoContext retrieves a file and related comments with a custom context.
 // Slack API docs: https://api.slack.com/methods/files.info
 func (api *Client) GetFileInfoContext(ctx context.Context, fileID string, count, page int) (*File, []Comment, *Paging, error) {
+	if api == nil {
+		return nil, nil, nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"file":  {fileID},
@@ -280,12 +283,18 @@ func (api *Client) GetFile(downloadURL string, writer io.Writer) error {
 // GetFileContext retrieves a given file from its private download URL with a custom context.
 // For more details, see GetFile documentation.
 func (api *Client) GetFileContext(ctx context.Context, downloadURL string, writer io.Writer) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	return downloadFile(ctx, api.httpclient, api.token, downloadURL, writer, api, api.cookies)
 }
 
 // GetFileResponseContext opens a given file's private download URL and returns the response.
 // The caller must close the response body.
 func (api *Client) GetFileResponseContext(ctx context.Context, downloadURL string) (*http.Response, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	return openFileDownload(ctx, api.httpclient, api.token, downloadURL, api, api.cookies)
 }
 
@@ -298,6 +307,9 @@ func (api *Client) GetFiles(params GetFilesParameters) ([]File, *Paging, error) 
 // GetFilesContext retrieves all files according to the parameters given with a custom context.
 // Slack API docs: https://api.slack.com/methods/files.list
 func (api *Client) GetFilesContext(ctx context.Context, params GetFilesParameters) ([]File, *Paging, error) {
+	if api == nil {
+		return nil, nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -346,6 +358,9 @@ func (api *Client) ListFiles(params ListFilesParameters) ([]File, *ListFilesPara
 // ListFilesContext retrieves all files according to the parameters given with a custom context.
 // Slack API docs: https://api.slack.com/methods/files.list
 func (api *Client) ListFilesContext(ctx context.Context, params ListFilesParameters) ([]File, *ListFilesParameters, error) {
+	if api == nil {
+		return nil, nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -392,6 +407,9 @@ type FileUploadURL struct {
 }
 
 func (api *Client) GetFileUploadURL(ctx context.Context, params GetFileUploadURLParameters) (*FileUploadURL, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -426,6 +444,9 @@ type CompleteFileUpload struct {
 }
 
 func (api *Client) CompleteFileUpload(ctx context.Context, fu *FileUploadURL) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	files, _ := json.Marshal([]CompletedFile{{
 		ID:      fu.File,
 		Title:   fu.Params.Filename,
@@ -447,6 +468,9 @@ func (api *Client) CompleteFileUpload(ctx context.Context, fu *FileUploadURL) er
 var quoteEscaper = strings.NewReplacer(`\`, `\\`, `"`, `\"`)
 
 func (api *Client) UploadToURLB(ctx context.Context, fu *FileUploadURL, mimeType string, data []byte) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	var buf bytes.Buffer
 	mp := multipart.NewWriter(&buf)
 	part, err := mp.CreatePart(textproto.MIMEHeader{
@@ -506,6 +530,9 @@ type ShareFile struct {
 }
 
 func (api *Client) ShareFile(ctx context.Context, params ShareFileParams) (*ShareFile, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":     {api.token},
 		"files":     {strings.Join(params.Files, ",")},
@@ -545,6 +572,9 @@ func (api *Client) DeleteFileComment(commentID, fileID string) error {
 // DeleteFileCommentContext deletes a file's comment with a custom context.
 // Slack API docs: https://api.slack.com/methods/files.comments.delete
 func (api *Client) DeleteFileCommentContext(ctx context.Context, fileID, commentID string) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 	if fileID == "" || commentID == "" {
 		return ErrParametersMissing
 	}
@@ -567,6 +597,9 @@ func (api *Client) DeleteFile(fileID string) error {
 // DeleteFileContext deletes a file with a custom context.
 // Slack API docs: https://api.slack.com/methods/files.delete
 func (api *Client) DeleteFileContext(ctx context.Context, fileID string) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"file":  {fileID},
@@ -585,6 +618,9 @@ func (api *Client) RevokeFilePublicURL(fileID string) (*File, error) {
 // RevokeFilePublicURLContext disables public/external sharing for a file with a custom context.
 // Slack API docs: https://api.slack.com/methods/files.revokePublicURL
 func (api *Client) RevokeFilePublicURLContext(ctx context.Context, fileID string) (*File, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"file":  {fileID},
@@ -606,6 +642,9 @@ func (api *Client) ShareFilePublicURL(fileID string) (*File, []Comment, *Paging,
 // ShareFilePublicURLContext enabled public/external sharing for a file with a custom context.
 // Slack API docs: https://api.slack.com/methods/files.sharedPublicURL
 func (api *Client) ShareFilePublicURLContext(ctx context.Context, fileID string) (*File, []Comment, *Paging, error) {
+	if api == nil {
+		return nil, nil, nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"file":  {fileID},
@@ -621,6 +660,9 @@ func (api *Client) ShareFilePublicURLContext(ctx context.Context, fileID string)
 // GetUploadURLExternalContext gets a URL and fileID from slack which can later be used to upload a file.
 // Slack API docs: https://api.slack.com/methods/files.getUploadURLExternal
 func (api *Client) GetUploadURLExternalContext(ctx context.Context, params GetUploadURLExternalParameters) (*GetUploadURLExternalResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if params.FileName == "" {
 		return nil, fmt.Errorf("FileName cannot be empty")
 	}
@@ -651,6 +693,9 @@ func (api *Client) GetUploadURLExternalContext(ctx context.Context, params GetUp
 // UploadToURL uploads the file to the provided URL using post method
 // This is not a Slack API method, but a helper function to upload files to the URL
 func (api *Client) UploadToURL(ctx context.Context, params UploadToURLParameters) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{}
 	if params.Content != "" {
 		contentReader := strings.NewReader(params.Content)
@@ -666,6 +711,9 @@ func (api *Client) UploadToURL(ctx context.Context, params UploadToURLParameters
 // CompleteUploadExternalContext once files are uploaded, this completes the upload and shares it to the specified channel
 // Slack API docs: https://api.slack.com/methods/files.completeUploadExternal
 func (api *Client) CompleteUploadExternalContext(ctx context.Context, params CompleteUploadExternalParameters) (file *CompleteUploadExternalResponse, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	filesBytes, err := json.Marshal(params.Files)
 	if err != nil {
 		return nil, err
@@ -716,6 +764,9 @@ func (api *Client) UploadFile(params UploadFileParameters) (*File, error) {
 //
 // Slack Docs: https://api.slack.com/messaging/files#uploading_files
 func (api *Client) UploadFileContext(ctx context.Context, params UploadFileParameters) (file *File, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if params.Filename == "" {
 		return nil, fmt.Errorf("file.upload.v2: filename cannot be empty")
 	}

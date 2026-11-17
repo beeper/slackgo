@@ -45,6 +45,9 @@ type (
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.featured.add
 func (api *Client) WorkflowsFeaturedAdd(ctx context.Context, input *WorkflowsFeaturedAddInput) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 	}{}
@@ -70,6 +73,9 @@ func (api *Client) WorkflowsFeaturedAdd(ctx context.Context, input *WorkflowsFea
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.featured.list
 func (api *Client) WorkflowsFeaturedList(ctx context.Context, input *WorkflowsFeaturedListInput) (*WorkflowsFeaturedListOutput, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 		*WorkflowsFeaturedListOutput
@@ -96,6 +102,9 @@ func (api *Client) WorkflowsFeaturedList(ctx context.Context, input *WorkflowsFe
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.featured.remove
 func (api *Client) WorkflowsFeaturedRemove(ctx context.Context, input *WorkflowsFeaturedRemoveInput) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 	}{}
@@ -121,6 +130,9 @@ func (api *Client) WorkflowsFeaturedRemove(ctx context.Context, input *Workflows
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.featured.set
 func (api *Client) WorkflowsFeaturedSet(ctx context.Context, input *WorkflowsFeaturedSetInput) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 	}{}

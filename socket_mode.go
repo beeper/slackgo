@@ -21,6 +21,9 @@ type openResponseFull struct {
 //
 // To have a fully managed Socket Mode connection, use `socketmode.New()`, and call `Run()` on it.
 func (api *Client) StartSocketModeContext(ctx context.Context) (info *SocketModeConnection, websocketURL string, err error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	response := &openResponseFull{}
 	err = api.postJSONMethod(ctx, "apps.connections.open", api.appLevelToken, nil, response)
 	if err != nil {

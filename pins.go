@@ -21,6 +21,9 @@ func (api *Client) AddPin(channel string, item ItemRef) error {
 // AddPinContext pins an item in a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/pins.add
 func (api *Client) AddPinContext(ctx context.Context, channel string, item ItemRef) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"channel": {channel},
 		"token":   {api.token},
@@ -52,6 +55,9 @@ func (api *Client) RemovePin(channel string, item ItemRef) error {
 // RemovePinContext un-pins an item from a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/pins.remove
 func (api *Client) RemovePinContext(ctx context.Context, channel string, item ItemRef) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"channel": {channel},
 		"token":   {api.token},
@@ -83,6 +89,9 @@ func (api *Client) ListPins(channel string) ([]Item, *Paging, error) {
 // ListPinsContext returns information about the items a user reacted to with a custom context.
 // Slack API docs: https://api.slack.com/methods/pins.list
 func (api *Client) ListPinsContext(ctx context.Context, channel string) ([]Item, *Paging, error) {
+	if api == nil {
+		return nil, nil, ErrNilClient
+	}
 	values := url.Values{
 		"channel": {channel},
 		"token":   {api.token},

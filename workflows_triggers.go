@@ -74,6 +74,9 @@ type (
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.triggers.permissions.add
 func (api *Client) WorkflowsTriggersPermissionsAdd(ctx context.Context, input *WorkflowsTriggersPermissionsAddInput) (*WorkflowsTriggersPermissionsAddOutput, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 		*WorkflowsTriggersPermissionsAddOutput
@@ -101,6 +104,9 @@ func (api *Client) WorkflowsTriggersPermissionsAdd(ctx context.Context, input *W
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.triggers.permissions.list
 func (api *Client) WorkflowsTriggersPermissionsList(ctx context.Context, input *WorkflowsTriggersPermissionsListInput) (*WorkflowsTriggersPermissionsListOutput, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 		*WorkflowsTriggersPermissionsListOutput
@@ -128,6 +134,9 @@ func (api *Client) WorkflowsTriggersPermissionsList(ctx context.Context, input *
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.triggers.permissions.remove
 func (api *Client) WorkflowsTriggersPermissionsRemove(ctx context.Context, input *WorkflowsTriggersPermissionsRemoveInput) (*WorkflowsTriggersPermissionsRemoveOutput, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 		*WorkflowsTriggersPermissionsRemoveOutput
@@ -154,6 +163,9 @@ func (api *Client) WorkflowsTriggersPermissionsRemove(ctx context.Context, input
 //
 // Slack API Docs:https://api.slack.com/methods/workflows.triggers.permissions.set
 func (api *Client) WorkflowsTriggersPermissionsSet(ctx context.Context, input *WorkflowsTriggersPermissionsSetInput) (*WorkflowsTriggersPermissionsSetOutput, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	response := struct {
 		SlackResponse
 		*WorkflowsTriggersPermissionsSetOutput

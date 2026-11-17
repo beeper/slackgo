@@ -52,6 +52,9 @@ type adminTeamSettingsInfoResponse struct {
 // AdminTeamsSettingsInfo returns workspace settings.
 // Slack API docs: https://docs.slack.dev/reference/methods/admin.teams.settings.info
 func (api *Client) AdminTeamsSettingsInfo(ctx context.Context, teamID string) (*AdminTeamSettings, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":   {api.token},
 		"team_id": {teamID},
@@ -69,6 +72,9 @@ func (api *Client) AdminTeamsSettingsInfo(ctx context.Context, teamID string) (*
 // AdminTeamsSettingsSetDefaultChannels sets the default channels for a workspace.
 // Slack API docs: https://docs.slack.dev/reference/methods/admin.teams.settings.setDefaultChannels
 func (api *Client) AdminTeamsSettingsSetDefaultChannels(ctx context.Context, teamID string, channelIDs ...string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":       {api.token},
 		"team_id":     {teamID},
@@ -86,6 +92,9 @@ func (api *Client) AdminTeamsSettingsSetDefaultChannels(ctx context.Context, tea
 // AdminTeamsSettingsSetDescription sets the description for a workspace.
 // Slack API docs: https://docs.slack.dev/reference/methods/admin.teams.settings.setDescription
 func (api *Client) AdminTeamsSettingsSetDescription(ctx context.Context, teamID, description string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":       {api.token},
 		"team_id":     {teamID},
@@ -104,6 +113,9 @@ func (api *Client) AdminTeamsSettingsSetDescription(ctx context.Context, teamID,
 // The discoverability parameter must be one of: open, invite_only, closed, or unlisted.
 // Slack API docs: https://docs.slack.dev/reference/methods/admin.teams.settings.setDiscoverability
 func (api *Client) AdminTeamsSettingsSetDiscoverability(ctx context.Context, teamID string, discoverability TeamDiscoverability) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":           {api.token},
 		"team_id":         {teamID},
@@ -121,6 +133,9 @@ func (api *Client) AdminTeamsSettingsSetDiscoverability(ctx context.Context, tea
 // AdminTeamsSettingsSetIcon sets the icon for a workspace.
 // Slack API docs: https://docs.slack.dev/reference/methods/admin.teams.settings.setIcon
 func (api *Client) AdminTeamsSettingsSetIcon(ctx context.Context, teamID, imageURL string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":     {api.token},
 		"team_id":   {teamID},
@@ -138,6 +153,9 @@ func (api *Client) AdminTeamsSettingsSetIcon(ctx context.Context, teamID, imageU
 // AdminTeamsSettingsSetName sets the name for a workspace.
 // Slack API docs: https://docs.slack.dev/reference/methods/admin.teams.settings.setName
 func (api *Client) AdminTeamsSettingsSetName(ctx context.Context, teamID, name string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":   {api.token},
 		"team_id": {teamID},

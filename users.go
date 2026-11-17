@@ -327,6 +327,9 @@ func (api *Client) GetUserPresence(user string) (*UserPresence, error) {
 // GetUserPresenceContext will retrieve the current presence status of given user with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.getPresence
 func (api *Client) GetUserPresenceContext(ctx context.Context, user string) (*UserPresence, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"user":  {user},
@@ -348,6 +351,9 @@ func (api *Client) GetUserInfo(user string) (*User, error) {
 // GetUserInfoContext will retrieve the complete user information with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.info
 func (api *Client) GetUserInfoContext(ctx context.Context, user string) (*User, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":          {api.token},
 		"user":           {user},
@@ -370,6 +376,9 @@ func (api *Client) GetUsersInfo(users ...string) (*[]User, error) {
 // GetUsersInfoContext will retrieve the complete multi-users information with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.info
 func (api *Client) GetUsersInfoContext(ctx context.Context, users ...string) (*[]User, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":          {api.token},
 		"users":          {strings.Join(users, ",")},
@@ -494,6 +503,9 @@ func (api *Client) GetUsers(options ...GetUsersOption) ([]User, error) {
 
 // GetUsersContext returns the list of users (with their detailed information) with a custom context
 func (api *Client) GetUsersContext(ctx context.Context, options ...GetUsersOption) (results []User, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	p := api.GetUsersPaginated(options...)
 	for err == nil {
 		p, err = p.Next(ctx)
@@ -527,6 +539,9 @@ type GetCachedUsersResponse struct {
 }
 
 func (api *Client) GetUsersCacheContext(ctx context.Context, teamID string, params GetCachedUsersParameters) (map[string]*User, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params.Token = api.token
 	var resp GetCachedUsersResponse
 	err := api.postEdgeAPI(ctx, teamID, "users.info", params, &resp)
@@ -553,6 +568,9 @@ func (api *Client) GetUserByEmail(email string) (*User, error) {
 // GetUserByEmailContext will retrieve the complete user information by email with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.lookupByEmail
 func (api *Client) GetUserByEmailContext(ctx context.Context, email string) (*User, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"email": {email},
@@ -573,6 +591,9 @@ func (api *Client) SetUserAsActive() error {
 // SetUserAsActiveContext marks the currently authenticated user as active with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.setActive
 func (api *Client) SetUserAsActiveContext(ctx context.Context) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -590,6 +611,9 @@ func (api *Client) SetUserPresence(presence string) error {
 // SetUserPresenceContext changes the currently authenticated user presence with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.setPresence
 func (api *Client) SetUserPresenceContext(ctx context.Context, presence string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":    {api.token},
 		"presence": {presence},
@@ -606,6 +630,9 @@ func (api *Client) ClientBoot() (*ClientBootResponse, error) {
 
 // ClientBootWithContext returns info needed to start a Slack client with a custom context
 func (api *Client) ClientBootContext(ctx context.Context) (response *ClientBootResponse, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":           {api.token},
 		"flannel_api_ver": {"4"},
@@ -625,6 +652,9 @@ func (api *Client) ClientBootContext(ctx context.Context) (response *ClientBootR
 }
 
 func (api *Client) ClientUserBootContext(ctx context.Context, minUpdated time.Time) (response *ClientUserBootResponse, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":                          {api.token},
 		"version_all_channels":           {"false"},
@@ -718,6 +748,9 @@ type ClientCountsResponse struct {
 }
 
 func (api *Client) ClientCountsContext(ctx context.Context, params *ClientCountsParams) (response *ClientCountsResponse, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -754,6 +787,9 @@ func (api *Client) GetUserIdentity() (*UserIdentityResponse, error) {
 // GetUserIdentityContext will retrieve user info available per identity scopes with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.identity
 func (api *Client) GetUserIdentityContext(ctx context.Context) (response *UserIdentityResponse, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -780,6 +816,9 @@ func (api *Client) SetUserPhoto(image string, params UserSetPhotoParams) error {
 // SetUserPhotoContext changes the currently authenticated user's profile image using a custom context.
 // Slack API docs: https://api.slack.com/methods/users.setPhoto
 func (api *Client) SetUserPhotoContext(ctx context.Context, image string, params UserSetPhotoParams) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 	response := &SlackResponse{}
 	values := url.Values{}
 	if params.CropX != DEFAULT_USER_PHOTO_CROP_X {
@@ -809,6 +848,9 @@ func (api *Client) DeleteUserPhoto() error {
 // DeleteUserPhotoContext deletes the current authenticated user's profile image with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.deletePhoto
 func (api *Client) DeleteUserPhotoContext(ctx context.Context) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 	response := &SlackResponse{}
 	values := url.Values{
 		"token": {api.token},
@@ -831,6 +873,9 @@ func (api *Client) SetUserRealName(realName string) error {
 // SetUserRealNameContextWithUser will set a real name for the provided user with a custom context.
 // Slack API docs: https://api.slack.com/methods/users.profile.set
 func (api *Client) SetUserRealNameContextWithUser(ctx context.Context, user, realName string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	profile, err := json.Marshal(
 		&struct {
 			RealName string `json:"real_name"`
@@ -886,6 +931,9 @@ func (api *Client) SetUserProfile(user string, profile *UserProfile) error {
 //
 // Slack API docs: https://docs.slack.dev/reference/methods/users.profile.set/
 func (api *Client) SetUserProfileContext(ctx context.Context, user string, profile *UserProfile) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	profileJSON, err := json.Marshal(profile)
 	if err != nil {
 		return err
@@ -926,6 +974,9 @@ func (api *Client) SetUserCustomFields(userID string, customFields map[string]Us
 //
 // Slack API docs: https://api.slack.com/methods/users.profile.set
 func (api *Client) SetUserCustomFieldsContext(ctx context.Context, userID string, customFields map[string]UserProfileCustomField) error {
+	if api == nil {
+		return ErrNilClient
+	}
 
 	// Convert data to data type with custom marshall / unmarshall
 	// For more information, see UserProfileCustomFields definition.
@@ -985,6 +1036,9 @@ func (api *Client) SetUserCustomStatusWithUser(user, statusText, statusEmoji str
 //
 // Slack API docs: https://api.slack.com/methods/users.profile.set
 func (api *Client) SetUserCustomStatusContextWithUser(ctx context.Context, user, statusText, statusEmoji string, statusExpiration int64) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	// This anonymous struct is for making requests to the Slack API for setting and
 	// unsetting a User's Custom Status/Emoji. To change these values we must provide a
 	// JSON document as the profile POST field.
@@ -1061,6 +1115,9 @@ type getUserProfileResponse struct {
 // GetUserProfileContext retrieves a user's profile information with a context.
 // Slack API docs: https://api.slack.com/methods/users.profile.get
 func (api *Client) GetUserProfileContext(ctx context.Context, params *GetUserProfileParameters) (*UserProfile, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{"token": {api.token}}
 
 	if params.UserID != "" {

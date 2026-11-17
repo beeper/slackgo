@@ -62,6 +62,9 @@ func (api *Client) EndDND() error {
 // EndDNDContext ends the user's scheduled Do Not Disturb session with a custom context.
 // Slack API docs: https://docs.slack.dev/reference/methods/dnd.endDnd
 func (api *Client) EndDNDContext(ctx context.Context) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -84,6 +87,9 @@ func (api *Client) EndSnooze() (*DNDStatus, error) {
 // EndSnoozeContext ends the current user's snooze mode with a custom context.
 // Slack API docs: https://docs.slack.dev/reference/methods/dnd.endSnooze
 func (api *Client) EndSnoozeContext(ctx context.Context) (*DNDStatus, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -104,6 +110,9 @@ func (api *Client) GetDNDInfo(user *string, options ...ParamOption) (*DNDStatus,
 // GetDNDInfoContext provides information about a user's current Do Not Disturb settings with a custom context.
 // Slack API docs: https://docs.slack.dev/reference/methods/dnd.info/
 func (api *Client) GetDNDInfoContext(ctx context.Context, user *string, options ...ParamOption) (*DNDStatus, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -130,6 +139,9 @@ func (api *Client) GetDNDTeamInfo(users []string, options ...ParamOption) (map[s
 // GetDNDTeamInfoContext provides information about a user's current Do Not Disturb settings with a custom context.
 // Slack API docs: https://docs.slack.dev/reference/methods/dnd.teamInfo
 func (api *Client) GetDNDTeamInfoContext(ctx context.Context, users []string, options ...ParamOption) (map[string]DNDStatus, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"users": {strings.Join(users, ",")},
@@ -161,6 +173,9 @@ func (api *Client) SetSnooze(minutes int) (*DNDStatus, error) {
 // begin one for the specified duration.
 // Slack API docs: https://docs.slack.dev/reference/methods/dnd.setSnooze
 func (api *Client) SetSnoozeContext(ctx context.Context, minutes int) (*DNDStatus, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":       {api.token},
 		"num_minutes": {strconv.Itoa(minutes)},

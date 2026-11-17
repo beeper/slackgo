@@ -90,6 +90,9 @@ func NewSearchParameters() SearchParameters {
 }
 
 func (api *Client) _search(ctx context.Context, path, query string, params SearchParameters) (response *searchResponseFull, error error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"query": {query},
@@ -176,6 +179,9 @@ type SearchUsers struct {
 }
 
 func (api *Client) SearchUsersCacheContext(ctx context.Context, teamID, query string) (resp *SearchUsers, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	err = api.postEdgeAPI(ctx, teamID, "users.search", searchUsersInput{
 		Count:                   24,
 		Filter:                  "NOT deactivated",

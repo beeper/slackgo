@@ -14,6 +14,9 @@ func (api *Client) RotateTokens(configToken string, refreshToken string) (*Token
 // RotateTokensContext exchanges a refresh token for a new app configuration token with a custom context.
 // Slack API docs: https://api.slack.com/methods/tooling.tokens.rotate
 func (api *Client) RotateTokensContext(ctx context.Context, configToken string, refreshToken string) (*TokenResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if configToken == "" {
 		configToken = api.configToken
 	}
@@ -37,6 +40,9 @@ func (api *Client) RotateTokensContext(ctx context.Context, configToken string, 
 
 // UpdateConfigTokens replaces the configuration tokens in the client with those returned by the API
 func (api *Client) UpdateConfigTokens(response *TokenResponse) {
+	if api == nil {
+		return
+	}
 	api.configToken = response.Token
 	api.configRefreshToken = response.RefreshToken
 }
