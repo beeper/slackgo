@@ -27,11 +27,12 @@ func TestNilClientMethods(t *testing.T) {
 			args := make([]reflect.Value, 0, mt.NumIn()-1)
 			for j := 1; j < mt.NumIn(); j++ {
 				in := mt.In(j)
-				if mt.IsVariadic() && j == mt.NumIn()-1 {
-					break
-				} else if in == ctxType {
+				switch {
+				case mt.IsVariadic() && j == mt.NumIn()-1:
+					// leave variadic args empty
+				case in == ctxType:
 					args = append(args, reflect.ValueOf(context.Background()))
-				} else {
+				default:
 					args = append(args, reflect.Zero(in))
 				}
 			}
