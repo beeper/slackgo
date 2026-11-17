@@ -18,6 +18,9 @@ type AdminConversationsInviteParams struct {
 // For more information see the admin.conversations.invite docs:
 // https://api.slack.com/methods/admin.conversations.invite
 func (api *Client) AdminConversationsInvite(ctx context.Context, params AdminConversationsInviteParams) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {params.ChannelID},
@@ -37,6 +40,9 @@ func (api *Client) AdminConversationsInvite(ctx context.Context, params AdminCon
 // For more information see the admin.conversations.archive docs:
 // https://api.slack.com/methods/admin.conversations.archive
 func (api *Client) AdminConversationsArchive(ctx context.Context, channelID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channelID},
@@ -55,6 +61,9 @@ func (api *Client) AdminConversationsArchive(ctx context.Context, channelID stri
 // For more information see the admin.conversations.unarchive docs:
 // https://api.slack.com/methods/admin.conversations.unarchive
 func (api *Client) AdminConversationsUnarchive(ctx context.Context, channelID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channelID},
@@ -73,6 +82,9 @@ func (api *Client) AdminConversationsUnarchive(ctx context.Context, channelID st
 // For more information see the admin.conversations.rename docs:
 // https://api.slack.com/methods/admin.conversations.rename
 func (api *Client) AdminConversationsRename(ctx context.Context, channelID, name string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channelID},
@@ -92,6 +104,9 @@ func (api *Client) AdminConversationsRename(ctx context.Context, channelID, name
 // For more information see the admin.conversations.delete docs:
 // https://api.slack.com/methods/admin.conversations.delete
 func (api *Client) AdminConversationsDelete(ctx context.Context, channelID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channelID},
@@ -124,6 +139,9 @@ func AdminConversationsDisconnectSharedOptionLeavingTeamIDs(teamIDs []string) Ad
 // For more information see the admin.conversations.disconnectShared docs:
 // https://api.slack.com/methods/admin.conversations.disconnectShared
 func (api *Client) AdminConversationsDisconnectShared(ctx context.Context, channelID string, options ...AdminConversationsDisconnectSharedOption) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	params := adminConversationsDisconnectSharedParams{}
 	for _, opt := range options {
 		opt(&params)
@@ -187,6 +205,9 @@ type AdminConversationsCreateResponse struct {
 // For more information see the admin.conversations.create docs:
 // https://api.slack.com/methods/admin.conversations.create
 func (api *Client) AdminConversationsCreate(ctx context.Context, name string, isPrivate bool, options ...AdminConversationsCreateOption) (string, error) {
+	if api == nil {
+		return "", ErrNilClient
+	}
 	params := adminConversationsCreateParams{}
 	for _, opt := range options {
 		opt(&params)
@@ -236,6 +257,9 @@ type AdminConversationsGetTeamsResponse struct {
 // For more information see the admin.conversations.getTeams docs:
 // https://api.slack.com/methods/admin.conversations.getTeams
 func (api *Client) AdminConversationsGetTeams(ctx context.Context, params AdminConversationsGetTeamsParams) ([]string, string, error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {params.ChannelID},
@@ -406,6 +430,9 @@ type AdminConversationsSearchResponse struct {
 // For more information see the admin.conversations.search docs:
 // https://api.slack.com/methods/admin.conversations.search
 func (api *Client) AdminConversationsSearch(ctx context.Context, options ...AdminConversationsSearchOption) (*AdminConversationsSearchResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params := adminConversationsSearchParams{}
 	for _, opt := range options {
 		opt(&params)
@@ -500,6 +527,9 @@ type AdminConversationsLookupResponse struct {
 // For more information see the admin.conversations.lookup docs:
 // https://api.slack.com/methods/admin.conversations.lookup
 func (api *Client) AdminConversationsLookup(ctx context.Context, teamIDs []string, lastMessageActivityBefore int64, options ...AdminConversationsLookupOption) ([]string, string, error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	params := adminConversationsLookupParams{}
 	for _, opt := range options {
 		opt(&params)
@@ -536,6 +566,9 @@ func (api *Client) AdminConversationsLookup(ctx context.Context, teamIDs []strin
 // For more information see the admin.conversations.bulkArchive docs:
 // https://api.slack.com/methods/admin.conversations.bulkArchive
 func (api *Client) AdminConversationsBulkArchive(ctx context.Context, channelIDs []string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":       {api.token},
 		"channel_ids": {strings.Join(channelIDs, ",")},
@@ -554,6 +587,9 @@ func (api *Client) AdminConversationsBulkArchive(ctx context.Context, channelIDs
 // For more information see the admin.conversations.bulkDelete docs:
 // https://api.slack.com/methods/admin.conversations.bulkDelete
 func (api *Client) AdminConversationsBulkDelete(ctx context.Context, channelIDs []string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":       {api.token},
 		"channel_ids": {strings.Join(channelIDs, ",")},
@@ -578,6 +614,9 @@ type AdminConversationsBulkMoveParams struct {
 // For more information see the admin.conversations.bulkMove docs:
 // https://api.slack.com/methods/admin.conversations.bulkMove
 func (api *Client) AdminConversationsBulkMove(ctx context.Context, params AdminConversationsBulkMoveParams) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":          {api.token},
 		"channel_ids":    {strings.Join(params.ChannelIDs, ",")},
@@ -623,6 +662,9 @@ type AdminConversationsGetConversationPrefsResponse struct {
 // For more information see the admin.conversations.getConversationPrefs docs:
 // https://api.slack.com/methods/admin.conversations.getConversationPrefs
 func (api *Client) AdminConversationsGetConversationPrefs(ctx context.Context, channelID string) (*AdminConversationPrefs, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channelID},
@@ -647,6 +689,9 @@ type AdminConversationsSetConversationPrefsParams struct {
 // For more information see the admin.conversations.setConversationPrefs docs:
 // https://api.slack.com/methods/admin.conversations.setConversationPrefs
 func (api *Client) AdminConversationsSetConversationPrefs(ctx context.Context, params AdminConversationsSetConversationPrefsParams) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	prefsJSON, err := json.Marshal(params.Prefs)
 	if err != nil {
 		return err
@@ -678,6 +723,9 @@ type AdminConversationsGetCustomRetentionResponse struct {
 // For more information see the admin.conversations.getCustomRetention docs:
 // https://api.slack.com/methods/admin.conversations.getCustomRetention
 func (api *Client) AdminConversationsGetCustomRetention(ctx context.Context, channelID string) (*AdminConversationsGetCustomRetentionResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channelID},
@@ -696,6 +744,9 @@ func (api *Client) AdminConversationsGetCustomRetention(ctx context.Context, cha
 // For more information see the admin.conversations.setCustomRetention docs:
 // https://api.slack.com/methods/admin.conversations.setCustomRetention
 func (api *Client) AdminConversationsSetCustomRetention(ctx context.Context, channelID string, durationDays int) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":         {api.token},
 		"channel_id":    {channelID},
@@ -715,6 +766,9 @@ func (api *Client) AdminConversationsSetCustomRetention(ctx context.Context, cha
 // For more information see the admin.conversations.removeCustomRetention docs:
 // https://api.slack.com/methods/admin.conversations.removeCustomRetention
 func (api *Client) AdminConversationsRemoveCustomRetention(ctx context.Context, channelID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {channelID},
@@ -742,6 +796,9 @@ type AdminConversationsSetTeamsParams struct {
 // private channel.
 // See: https://api.slack.com/methods/admin.conversations.setTeams
 func (api *Client) AdminConversationsSetTeams(ctx context.Context, params AdminConversationsSetTeamsParams) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"channel_id": {params.ChannelID},
@@ -773,6 +830,9 @@ func (api *Client) AdminConversationsSetTeams(ctx context.Context, params AdminC
 // you should read the Slack documentation for more details.
 // See: https://api.slack.com/methods/admin.conversations.convertToPrivate
 func (api *Client) AdminConversationsConvertToPrivate(ctx context.Context, channelID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      []string{api.token},
 		"channel_id": []string{channelID},
@@ -792,6 +852,9 @@ func (api *Client) AdminConversationsConvertToPrivate(ctx context.Context, chann
 // you should read the Slack documentation for more details.
 // See: https://api.slack.com/methods/admin.conversations.convertToPublic
 func (api *Client) AdminConversationsConvertToPublic(ctx context.Context, channelID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      []string{api.token},
 		"channel_id": []string{channelID},

@@ -19,6 +19,9 @@ func (api *Client) GetEmoji() (map[string]string, error) {
 // GetEmojiContext retrieves all the emojis with a custom context.
 // Slack API docs: https://api.slack.com/methods/emoji.list
 func (api *Client) GetEmojiContext(ctx context.Context) (map[string]string, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -54,6 +57,9 @@ type GetCachedEmojisResponse struct {
 }
 
 func (api *Client) GetEmojisCacheContext(ctx context.Context, teamID string, params GetCachedEmojisParameters) (*GetCachedEmojisResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params.Token = api.token
 	var resp GetCachedEmojisResponse
 	err := api.postEdgeAPI(ctx, teamID, "emojis.info", params, &resp)

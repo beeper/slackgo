@@ -66,6 +66,9 @@ type AdminConversationsEKMListOriginalConnectedChannelInfoResponse struct {
 // For more information see the admin.conversations.ekm.listOriginalConnectedChannelInfo docs:
 // https://api.slack.com/methods/admin.conversations.ekm.listOriginalConnectedChannelInfo
 func (api *Client) AdminConversationsEKMListOriginalConnectedChannelInfo(ctx context.Context, options ...AdminConversationsEKMListOriginalConnectedChannelInfoOption) (*AdminConversationsEKMListOriginalConnectedChannelInfoResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params := adminConversationsEKMListOriginalConnectedChannelInfoParams{}
 	for _, opt := range options {
 		opt(&params)

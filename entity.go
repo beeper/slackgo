@@ -62,6 +62,9 @@ func (api *Client) EntityPresentDetails(params EntityPresentDetailsParameters) e
 // EntityPresentDetailsContext presents entity details in the flexpane with a custom context.
 // Slack API docs: https://docs.slack.dev/reference/methods/entity.presentDetails
 func (api *Client) EntityPresentDetailsContext(ctx context.Context, params EntityPresentDetailsParameters) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":      {api.token},
 		"trigger_id": {params.TriggerID},

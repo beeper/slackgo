@@ -27,6 +27,9 @@ func AdminConversationsRestrictAccessAddGroupOptionTeamID(teamID string) AdminCo
 // For more information see the admin.conversations.restrictAccess.addGroup docs:
 // https://api.slack.com/methods/admin.conversations.restrictAccess.addGroup
 func (api *Client) AdminConversationsRestrictAccessAddGroup(ctx context.Context, channelID, groupID string, options ...AdminConversationsRestrictAccessAddGroupOption) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	params := adminConversationsRestrictAccessAddGroupParams{}
 	for _, opt := range options {
 		opt(&params)
@@ -80,6 +83,9 @@ type AdminConversationsRestrictAccessListGroupsResponse struct {
 // For more information see the admin.conversations.restrictAccess.listGroups docs:
 // https://api.slack.com/methods/admin.conversations.restrictAccess.listGroups
 func (api *Client) AdminConversationsRestrictAccessListGroups(ctx context.Context, channelID string, options ...AdminConversationsRestrictAccessListGroupsOption) ([]string, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params := adminConversationsRestrictAccessListGroupsParams{}
 	for _, opt := range options {
 		opt(&params)
@@ -125,6 +131,9 @@ func AdminConversationsRestrictAccessRemoveGroupOptionTeamID(teamID string) Admi
 // For more information see the admin.conversations.restrictAccess.removeGroup docs:
 // https://api.slack.com/methods/admin.conversations.restrictAccess.removeGroup
 func (api *Client) AdminConversationsRestrictAccessRemoveGroup(ctx context.Context, channelID, groupID string, options ...AdminConversationsRestrictAccessRemoveGroupOption) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	params := adminConversationsRestrictAccessRemoveGroupParams{}
 	for _, opt := range options {
 		opt(&params)

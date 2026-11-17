@@ -70,6 +70,9 @@ func (api *Client) AddCall(params AddCallParameters) (Call, error) {
 
 // AddCallContext adds a new Call to the Slack API.
 func (api *Client) AddCallContext(ctx context.Context, params AddCallParameters) (Call, error) {
+	if api == nil {
+		return Call{}, ErrNilClient
+	}
 	values := url.Values{
 		"token":              {api.token},
 		"join_url":           {params.JoinURL},
@@ -113,6 +116,9 @@ func (api *Client) GetCall(callID string) (Call, error) {
 
 // GetCallInfoContext returns information about a Call.
 func (api *Client) GetCallContext(ctx context.Context, callID string) (Call, error) {
+	if api == nil {
+		return Call{}, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"id":    {callID},
@@ -131,6 +137,9 @@ func (api *Client) UpdateCall(callID string, params UpdateCallParameters) (Call,
 
 // UpdateCallContext updates a Call with the given parameters.
 func (api *Client) UpdateCallContext(ctx context.Context, callID string, params UpdateCallParameters) (Call, error) {
+	if api == nil {
+		return Call{}, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"id":    {callID},
@@ -160,6 +169,9 @@ func (api *Client) EndCall(callID string, params EndCallParameters) error {
 
 // EndCallContext ends a Call.
 func (api *Client) EndCallContext(ctx context.Context, callID string, params EndCallParameters) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"id":    {callID},
@@ -197,6 +209,9 @@ func (api *Client) CallRemoveParticipantsContext(ctx context.Context, callID str
 }
 
 func (api *Client) setCallParticipants(ctx context.Context, method, callID string, participants []CallParticipant) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"id":    {callID},

@@ -227,6 +227,9 @@ func (api *Client) OpenViewContext(
 	triggerID string,
 	view ModalViewRequest,
 ) (*ViewResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if triggerID == "" {
 		return nil, ErrParametersMissing
 	}
@@ -254,6 +257,9 @@ func (api *Client) OpenViewContext(
 // PublishView publishes a static view for a user.
 // For more information see the PublishViewContext documentation.
 func (api *Client) PublishView(userID string, view HomeTabViewRequest, hash string) (*ViewResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	var hashPtr *string
 	if hash != "" {
 		hashPtr = &hash
@@ -267,6 +273,9 @@ func (api *Client) PublishViewContext(
 	ctx context.Context,
 	req PublishViewContextRequest,
 ) (*ViewResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if req.UserID == "" {
 		return nil, ErrParametersMissing
 	}
@@ -295,6 +304,9 @@ func (api *Client) PushViewContext(
 	triggerID string,
 	view ModalViewRequest,
 ) (*ViewResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if triggerID == "" {
 		return nil, ErrParametersMissing
 	}
@@ -328,6 +340,9 @@ func (api *Client) UpdateViewContext(
 	externalID, hash,
 	viewID string,
 ) (*ViewResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if externalID == "" && viewID == "" {
 		return nil, ErrParametersMissing
 	}

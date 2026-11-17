@@ -128,6 +128,9 @@ func (api *Client) GetTeamInfo() (*TeamInfo, error) {
 // GetOtherTeamInfoContext gets Team information for any team with a custom context.
 // Slack API docs: https://api.slack.com/methods/team.info
 func (api *Client) GetOtherTeamInfoContext(ctx context.Context, team string) (*TeamInfo, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if team == "" {
 		return api.GetTeamInfoContext(ctx)
 	}
@@ -151,6 +154,9 @@ func (api *Client) GetOtherTeamInfo(team string) (*TeamInfo, error) {
 // GetTeamInfoContext gets the Team Information of the user with a custom context.
 // Slack API docs: https://api.slack.com/methods/team.info
 func (api *Client) GetTeamInfoContext(ctx context.Context) (*TeamInfo, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -171,6 +177,9 @@ func (api *Client) GetTeamProfile(teamID ...string) (*TeamProfile, error) {
 // GetTeamProfileContext gets the Team Profile settings of the user with a custom context.
 // Slack API docs: https://api.slack.com/methods/team.profile.get
 func (api *Client) GetTeamProfileContext(ctx context.Context, teamID ...string) (*TeamProfile, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -194,6 +203,9 @@ func (api *Client) GetAccessLogs(params AccessLogParameters) ([]Login, string, e
 // GetAccessLogsContext retrieves a page of logins according to the parameters given with a custom context.
 // Slack API docs: https://api.slack.com/methods/team.accessLogs
 func (api *Client) GetAccessLogsContext(ctx context.Context, params AccessLogParameters) ([]Login, string, error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -231,6 +243,9 @@ func (api *Client) GetBillableInfo(params GetBillableInfoParams) (map[string]Bil
 // GetBillableInfoContext gets the billable users information of the team with a custom context.
 // Slack API docs: https://api.slack.com/methods/team.billableInfo
 func (api *Client) GetBillableInfoContext(ctx context.Context, params GetBillableInfoParams) (map[string]BillingActive, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}

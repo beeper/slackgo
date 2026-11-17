@@ -24,6 +24,9 @@ func (api *Client) DisableUser(teamName string, uid string) error {
 
 // DisableUserContext disabled a user account, given a user ID with a custom context
 func (api *Client) DisableUserContext(ctx context.Context, teamName string, uid string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"user":       {uid},
 		"token":      {api.token},
@@ -45,6 +48,9 @@ func (api *Client) InviteGuest(teamName, channel, firstName, lastName, emailAddr
 
 // InviteGuestContext invites a user to Slack as a single-channel guest with a custom context
 func (api *Client) InviteGuestContext(ctx context.Context, teamName, channel, firstName, lastName, emailAddress string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"email":            {emailAddress},
 		"channels":         {channel},
@@ -72,6 +78,9 @@ func (api *Client) InviteRestricted(teamName, channel, firstName, lastName, emai
 
 // InviteRestrictedContext invites a user to Slack as a restricted account with a custom context
 func (api *Client) InviteRestrictedContext(ctx context.Context, teamName, channel, firstName, lastName, emailAddress string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"email":      {emailAddress},
 		"channels":   {channel},
@@ -99,6 +108,9 @@ func (api *Client) InviteToTeam(teamName, firstName, lastName, emailAddress stri
 
 // InviteToTeamContext invites a user to a Slack team with a custom context
 func (api *Client) InviteToTeamContext(ctx context.Context, teamName, firstName, lastName, emailAddress string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"email":      {emailAddress},
 		"first_name": {firstName},
@@ -123,6 +135,9 @@ func (api *Client) SetRegular(teamName, user string) error {
 
 // SetRegularContext enables the specified user with a custom context
 func (api *Client) SetRegularContext(ctx context.Context, teamName, user string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"user":       {user},
 		"token":      {api.token},
@@ -145,6 +160,9 @@ func (api *Client) SendSSOBindingEmail(teamName, user string) error {
 
 // SendSSOBindingEmailContext sends an SSO binding email to the specified user with a custom context
 func (api *Client) SendSSOBindingEmailContext(ctx context.Context, teamName, user string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"user":       {user},
 		"token":      {api.token},
@@ -167,6 +185,9 @@ func (api *Client) SetUltraRestricted(teamName, uid, channel string) error {
 
 // SetUltraRestrictedContext converts a user into a single-channel guest with a custom context
 func (api *Client) SetUltraRestrictedContext(ctx context.Context, teamName, uid, channel string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"user":       {uid},
 		"channel":    {channel},
@@ -190,6 +211,9 @@ func (api *Client) SetRestricted(teamName, uid string, channelIds ...string) err
 
 // SetRestrictedContext converts a user into a restricted account with a custom context
 func (api *Client) SetRestrictedContext(ctx context.Context, teamName, uid string, channelIds ...string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"user":       {uid},
 		"token":      {api.token},

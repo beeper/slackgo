@@ -29,6 +29,9 @@ func (api *Client) ListEventAuthorizations(eventContext string) ([]EventAuthoriz
 // ListEventAuthorizationsContext lists authed users and teams for the given event_context with a custom context.
 // Slack API docs: https://api.slack.com/methods/apps.event.authorizations.list
 func (api *Client) ListEventAuthorizationsContext(ctx context.Context, eventContext string) ([]EventAuthorization, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	resp := &listEventAuthorizationsResponse{}
 
 	request, _ := json.Marshal(map[string]string{
@@ -56,6 +59,9 @@ func (api *Client) UninstallApp(clientID, clientSecret string) error {
 // UninstallAppContext uninstalls your app from a workspace with a custom context.
 // Slack API docs: https://api.slack.com/methods/apps.uninstall
 func (api *Client) UninstallAppContext(ctx context.Context, clientID, clientSecret string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"client_id":     {clientID},
 		"client_secret": {clientSecret},

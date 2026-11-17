@@ -325,6 +325,9 @@ func (api *Client) GetUserPrefs() (*UserPrefsCarrier, error) {
 }
 
 func (api *Client) GetUserPrefsContext(ctx context.Context) (*UserPrefsCarrier, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	response := UserPrefsCarrier{}
 
 	err := api.getMethod(ctx, "users.prefs.get", api.token, url.Values{}, &response)

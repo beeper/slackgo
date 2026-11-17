@@ -144,6 +144,9 @@ func (api *Client) AddReaction(name string, item ItemRef) error {
 // AddReactionContext adds a reaction emoji to a message, file or file comment with a custom context.
 // Slack API docs: https://api.slack.com/methods/reactions.add
 func (api *Client) AddReactionContext(ctx context.Context, name string, item ItemRef) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -180,6 +183,9 @@ func (api *Client) RemoveReaction(name string, item ItemRef) error {
 // RemoveReactionContext removes a reaction emoji from a message, file or file comment with a custom context.
 // Slack API docs: https://api.slack.com/methods/reactions.remove
 func (api *Client) RemoveReactionContext(ctx context.Context, name string, item ItemRef) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -216,6 +222,9 @@ func (api *Client) GetReactions(item ItemRef, params GetReactionsParameters) (Re
 // GetReactionsContext returns item and details about the reactions on an item with a custom context.
 // Slack API docs: https://api.slack.com/methods/reactions.get
 func (api *Client) GetReactionsContext(ctx context.Context, item ItemRef, params GetReactionsParameters) (ReactedItem, error) {
+	if api == nil {
+		return ReactedItem{}, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -256,6 +265,9 @@ func (api *Client) ListReactions(params ListReactionsParameters) ([]ReactedItem,
 // ListReactionsContext returns information about the items a user reacted to with a custom context.
 // Slack API docs: https://api.slack.com/methods/reactions.list
 func (api *Client) ListReactionsContext(ctx context.Context, params ListReactionsParameters) ([]ReactedItem, string, error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
