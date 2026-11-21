@@ -468,30 +468,35 @@ func (api *Client) CompleteFileUpload(ctx context.Context, fu *FileUploadURL) er
 var quoteEscaper = strings.NewReplacer(`\`, `\\`, `"`, `\"`)
 
 func (api *Client) UploadToURLB(ctx context.Context, fu *FileUploadURL, mimeType string, data []byte) error {
+	return api.UploadToURLReader(ctx, fu, mimeType, bytes.NewReader(data), int64(len(data)))
+}
+
+func (api *Client) UploadToURLReader(ctx context.Context, fu *FileUploadURL, mimeType string, data io.Reader, size int64) error {
 	if api == nil {
 		return ErrNilClient
 	}
 	var buf bytes.Buffer
 	mp := multipart.NewWriter(&buf)
-	part, err := mp.CreatePart(textproto.MIMEHeader{
+	_, err := mp.CreatePart(textproto.MIMEHeader{
 		"Content-Disposition": {fmt.Sprintf(`form-data; name="file"; filename="%s"`, quoteEscaper.Replace(fu.Params.Filename))},
 		"Content-Type":        {mimeType},
 	})
 	if err != nil {
 		return err
 	}
-	_, err = part.Write(data)
-	if err != nil {
-		return err
-	}
+	header := bytes.Clone(buf.Bytes())
+	buf.Reset()
 	err = mp.Close()
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fu.UploadURL, &buf)
+	footer := buf.Bytes()
+	body := io.MultiReader(bytes.NewReader(header), io.LimitReader(data, size), bytes.NewReader(footer))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fu.UploadURL, body)
 	if err != nil {
 		return err
 	}
+	req.ContentLength = int64(len(header)) + size + int64(len(footer))
 	req.Header.Set("Content-Type", mp.FormDataContentType())
 	req.Header.Set("Origin", "https://app.slack.com")
 	req.Header.Set("User-Agent", BrowserUserAgent)
