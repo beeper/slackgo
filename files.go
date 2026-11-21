@@ -521,7 +521,7 @@ func (api *Client) UploadToURLReader(ctx context.Context, fu *FileUploadURL, mim
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		respDat, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("upload failed with status %d: %s", resp.StatusCode, respDat)
 	}
