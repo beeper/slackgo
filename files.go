@@ -496,19 +496,16 @@ func (api *Client) UploadToURLReader(ctx context.Context, fu *FileUploadURL, mim
 	}
 	var getBody func() (io.ReadCloser, error)
 	var body io.Reader
+	body = makeBody(io.LimitReader(data, size))
 	readerAt, isReaderAt := data.(io.ReaderAt)
 	seeker, isSeeker := data.(io.Seeker)
 	if isReaderAt && isSeeker {
-		start, err := seeker.Seek(0, io.SeekCurrent)
-		if err != nil {
-			return err
+		if start, err := seeker.Seek(0, io.SeekCurrent); err == nil {
+			body = makeBody(io.NewSectionReader(readerAt, start, size))
+			getBody = func() (io.ReadCloser, error) {
+				return io.NopCloser(makeBody(io.NewSectionReader(readerAt, start, size))), nil
+			}
 		}
-		body = makeBody(io.NewSectionReader(readerAt, start, size))
-		getBody = func() (io.ReadCloser, error) {
-			return io.NopCloser(makeBody(io.NewSectionReader(readerAt, start, size))), nil
-		}
-	} else {
-		body = makeBody(io.LimitReader(data, size))
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fu.UploadURL, body)
 	if err != nil {
