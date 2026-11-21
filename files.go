@@ -491,22 +491,30 @@ func (api *Client) UploadToURLReader(ctx context.Context, fu *FileUploadURL, mim
 		return err
 	}
 	footer := buf.Bytes()
-	body := io.MultiReader(bytes.NewReader(header), io.LimitReader(data, size), bytes.NewReader(footer))
+	makeBody := func(part io.Reader) io.Reader {
+		return io.MultiReader(bytes.NewReader(header), part, bytes.NewReader(footer))
+	}
+	var getBody func() (io.ReadCloser, error)
+	var body io.Reader
+	readerAt, isReaderAt := data.(io.ReaderAt)
+	seeker, isSeeker := data.(io.Seeker)
+	if isReaderAt && isSeeker {
+		start, err := seeker.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return err
+		}
+		body = makeBody(io.NewSectionReader(readerAt, start, size))
+		getBody = func() (io.ReadCloser, error) {
+			return io.NopCloser(makeBody(io.NewSectionReader(readerAt, start, size))), nil
+		}
+	} else {
+		body = makeBody(io.LimitReader(data, size))
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fu.UploadURL, body)
 	if err != nil {
 		return err
 	}
-	if seeker, ok := data.(io.Seeker); ok {
-		start, err := seeker.Seek(0, io.SeekCurrent)
-		if err == nil {
-			req.GetBody = func() (io.ReadCloser, error) {
-				if _, err := seeker.Seek(start, io.SeekStart); err != nil {
-					return nil, err
-				}
-				return io.NopCloser(io.MultiReader(bytes.NewReader(header), io.LimitReader(data, size), bytes.NewReader(footer))), nil
-			}
-		}
-	}
+	req.GetBody = getBody
 	req.ContentLength = int64(len(header)) + size + int64(len(footer))
 	req.Header.Set("Content-Type", mp.FormDataContentType())
 	req.Header.Set("Origin", "https://app.slack.com")
