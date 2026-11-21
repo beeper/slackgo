@@ -496,6 +496,17 @@ func (api *Client) UploadToURLReader(ctx context.Context, fu *FileUploadURL, mim
 	if err != nil {
 		return err
 	}
+	if seeker, ok := data.(io.Seeker); ok {
+		start, err := seeker.Seek(0, io.SeekCurrent)
+		if err == nil {
+			req.GetBody = func() (io.ReadCloser, error) {
+				if _, err := seeker.Seek(start, io.SeekStart); err != nil {
+					return nil, err
+				}
+				return io.NopCloser(io.MultiReader(bytes.NewReader(header), io.LimitReader(data, size), bytes.NewReader(footer))), nil
+			}
+		}
+	}
 	req.ContentLength = int64(len(header)) + size + int64(len(footer))
 	req.Header.Set("Content-Type", mp.FormDataContentType())
 	req.Header.Set("Origin", "https://app.slack.com")
