@@ -91,6 +91,9 @@ func (api *Client) OpenDialog(triggerID string, dialog Dialog) (err error) {
 // OpenDialogContext opens a dialog window where the triggerId originated from with a custom context
 // EXPERIMENTAL: dialog functionality is currently experimental, api is not considered stable.
 func (api *Client) OpenDialogContext(ctx context.Context, triggerID string, dialog Dialog) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 	if triggerID == "" {
 		return ErrParametersMissing
 	}

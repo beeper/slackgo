@@ -122,6 +122,9 @@ func (api *Client) GetAuditLogs(params AuditLogParameters) (entries []AuditEntry
 
 // GetAuditLogsContext retrieves a page of audit entries according to the parameters given with a custom context
 func (api *Client) GetAuditLogsContext(ctx context.Context, params AuditLogParameters) (entries []AuditEntry, nextCursor string, err error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	values := url.Values{}
 	if params.Limit != 0 {
 		values.Add("limit", strconv.Itoa(params.Limit))

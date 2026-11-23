@@ -64,6 +64,9 @@ func (api *Client) AddBookmark(channelID string, params AddBookmarkParameters) (
 // AddBookmarkContext adds a bookmark in a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/bookmarks.add
 func (api *Client) AddBookmarkContext(ctx context.Context, channelID string, params AddBookmarkParameters) (Bookmark, error) {
+	if api == nil {
+		return Bookmark{}, ErrNilClient
+	}
 	values := url.Values{
 		"channel_id": {channelID},
 		"token":      {api.token},
@@ -100,6 +103,9 @@ func (api *Client) RemoveBookmark(channelID, bookmarkID string) error {
 // RemoveBookmarkContext removes a bookmark from a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/bookmarks.remove
 func (api *Client) RemoveBookmarkContext(ctx context.Context, channelID, bookmarkID string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"channel_id":  {channelID},
 		"token":       {api.token},
@@ -123,6 +129,9 @@ func (api *Client) ListBookmarks(channelID string) ([]Bookmark, error) {
 // ListBookmarksContext returns all bookmarks for a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/bookmarks.edit
 func (api *Client) ListBookmarksContext(ctx context.Context, channelID string) ([]Bookmark, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"channel_id": {channelID},
 		"token":      {api.token},
@@ -145,6 +154,9 @@ func (api *Client) EditBookmark(channelID, bookmarkID string, params EditBookmar
 // EditBookmarkContext edits a bookmark in a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/bookmarks.edit
 func (api *Client) EditBookmarkContext(ctx context.Context, channelID, bookmarkID string, params EditBookmarkParameters) (Bookmark, error) {
+	if api == nil {
+		return Bookmark{}, ErrNilClient
+	}
 	values := url.Values{
 		"channel_id":  {channelID},
 		"token":       {api.token},

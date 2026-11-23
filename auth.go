@@ -32,6 +32,9 @@ func (api *Client) SendAuthRevoke(token string) (*AuthRevokeResponse, error) {
 // SendAuthRevokeContext will send a revocation request for our token to api.revoke with a custom context.
 // Slack API docs: https://api.slack.com/methods/auth.revoke
 func (api *Client) SendAuthRevokeContext(ctx context.Context, token string) (*AuthRevokeResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	if token == "" {
 		token = api.token
 	}
@@ -49,6 +52,9 @@ func (api *Client) SendAuthSignout() (*SlackResponse, error) {
 
 // SendAuthSignout signs out a user client with context
 func (api *Client) SendAuthSignoutContext(ctx context.Context) (*SlackResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -81,6 +87,9 @@ func (api *Client) ListTeams(params ListTeamsParameters) ([]Team, string, error)
 // ListTeamsContext returns all workspaces a token can access with a custom context.
 // Slack API docs: https://api.slack.com/methods/auth.teams.list
 func (api *Client) ListTeamsContext(ctx context.Context, params ListTeamsParameters) ([]Team, string, error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}

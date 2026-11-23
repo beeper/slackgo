@@ -16,6 +16,9 @@ type migrationExchangeResponseFull struct {
 
 // MigrationExchange for Enterprise Grid workspaces, map local user IDs to global user IDs
 func (api *Client) MigrationExchange(ctx context.Context, teamID string, toOld bool, users []string) (map[string]string, []string, error) {
+	if api == nil {
+		return nil, nil, ErrNilClient
+	}
 	values := url.Values{
 		"users": users,
 	}

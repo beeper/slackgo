@@ -250,6 +250,9 @@ func (api *Client) SendMessage(channel string, options ...MsgOption) (string, st
 // SendMessageContext more flexible method for configuring messages with a custom context.
 // Slack API docs: https://api.slack.com/methods/chat.postMessage
 func (api *Client) SendMessageContext(ctx context.Context, channelID string, options ...MsgOption) (_channel string, _timestampOrScheduledMessageID string, _text string, err error) {
+	if api == nil {
+		return "", "", "", ErrNilClient
+	}
 	var (
 		req      *http.Request
 		parser   func(*chatResponseFull) responseParser
@@ -1038,6 +1041,9 @@ func (api *Client) GetPermalink(params *PermalinkParameters) (string, error) {
 // GetPermalinkContext returns the permalink for a message using a custom context.
 // Slack API docs: https://api.slack.com/methods/chat.getPermalink
 func (api *Client) GetPermalinkContext(ctx context.Context, params *PermalinkParameters) (string, error) {
+	if api == nil {
+		return "", ErrNilClient
+	}
 	values := url.Values{
 		"channel":    {params.Channel},
 		"message_ts": {params.Ts},
@@ -1073,6 +1079,9 @@ func (api *Client) GetScheduledMessages(params *GetScheduledMessagesParameters) 
 // GetScheduledMessagesContext returns the list of scheduled messages based on params with a custom context.
 // Slack API docs: https://api.slack.com/methods/chat.getScheduledMessages.list
 func (api *Client) GetScheduledMessagesContext(ctx context.Context, params *GetScheduledMessagesParameters) (channels []ScheduledMessage, nextCursor string, err error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -1123,6 +1132,9 @@ func (api *Client) DeleteScheduledMessage(params *DeleteScheduledMessageParamete
 // DeleteScheduledMessageContext deletes a pending scheduled message with a custom context.
 // Slack API docs: https://api.slack.com/methods/chat.deleteScheduledMessage
 func (api *Client) DeleteScheduledMessageContext(ctx context.Context, params *DeleteScheduledMessageParameters) (bool, error) {
+	if api == nil {
+		return false, ErrNilClient
+	}
 	values := url.Values{
 		"token":                {api.token},
 		"channel":              {params.Channel},

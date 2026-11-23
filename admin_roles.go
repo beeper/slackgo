@@ -37,6 +37,9 @@ type AdminRolesAddAssignmentsResponse struct {
 // For more information see the admin.roles.addAssignments docs:
 // https://api.slack.com/methods/admin.roles.addAssignments
 func (api *Client) AdminRolesAddAssignments(ctx context.Context, params AdminRolesAddAssignmentsParams) (*AdminRolesAddAssignmentsResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":   {api.token},
 		"role_id": {params.RoleID},
@@ -125,6 +128,9 @@ type AdminRolesListAssignmentsResponse struct {
 // For more information see the admin.roles.listAssignments docs:
 // https://api.slack.com/methods/admin.roles.listAssignments
 func (api *Client) AdminRolesListAssignments(ctx context.Context, options ...AdminRolesListAssignmentsOption) (*AdminRolesListAssignmentsResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params := adminRolesListAssignmentsParams{}
 	for _, opt := range options {
 		opt(&params)
@@ -181,6 +187,9 @@ type AdminRolesRemoveAssignmentsResponse struct {
 // For more information see the admin.roles.removeAssignments docs:
 // https://api.slack.com/methods/admin.roles.removeAssignments
 func (api *Client) AdminRolesRemoveAssignments(ctx context.Context, params AdminRolesRemoveAssignmentsParams) (*AdminRolesRemoveAssignmentsResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":   {api.token},
 		"role_id": {params.RoleID},

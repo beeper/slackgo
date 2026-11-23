@@ -234,6 +234,9 @@ func (api *Client) AuthTest() (response *AuthTestResponse, error error) {
 
 // AuthTestContext tests if the user is able to do authenticated requests or not with a custom context
 func (api *Client) AuthTestContext(ctx context.Context) (response *AuthTestResponse, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	api.Debugf("Challenging auth...")
 	responseFull := &authTestResponseFull{}
 	err = api.postMethod(ctx, "auth.test", url.Values{"token": {api.token}}, responseFull)
@@ -247,21 +250,21 @@ func (api *Client) AuthTestContext(ctx context.Context) (response *AuthTestRespo
 
 // Debugf print a formatted debug line.
 func (api *Client) Debugf(format string, v ...any) {
-	if api.debug {
+	if api != nil && api.debug {
 		api.log.Output(2, fmt.Sprintf(format, v...))
 	}
 }
 
 // Debugln print a debug line.
 func (api *Client) Debugln(v ...any) {
-	if api.debug {
+	if api != nil && api.debug {
 		api.log.Output(2, fmt.Sprintln(v...))
 	}
 }
 
 // Debug returns if debug is enabled.
 func (api *Client) Debug() bool {
-	return api.debug
+	return api != nil && api.debug
 }
 
 // post to a slack web method.

@@ -83,6 +83,9 @@ func (api *Client) CreateUserGroup(userGroup UserGroup, options ...CreateUserGro
 // CreateUserGroupContext creates a new user group with a custom context.
 // Slack API docs: https://api.slack.com/methods/usergroups.create
 func (api *Client) CreateUserGroupContext(ctx context.Context, userGroup UserGroup, options ...CreateUserGroupOption) (UserGroup, error) {
+	if api == nil {
+		return UserGroup{}, ErrNilClient
+	}
 	params := createUserGroupParams{}
 
 	for _, opt := range options {
@@ -157,6 +160,9 @@ func (api *Client) DisableUserGroup(userGroup string, options ...DisableUserGrou
 // DisableUserGroupContext disables an existing user group with a custom context.
 // Slack API docs: https://api.slack.com/methods/usergroups.disable
 func (api *Client) DisableUserGroupContext(ctx context.Context, userGroup string, options ...DisableUserGroupOption) (UserGroup, error) {
+	if api == nil {
+		return UserGroup{}, ErrNilClient
+	}
 	params := DisableUserGroupParams{}
 
 	for _, opt := range options {
@@ -215,6 +221,9 @@ func (api *Client) EnableUserGroup(userGroup string, options ...EnableUserGroupO
 // EnableUserGroupContext enables an existing user group with a custom context.
 // Slack API docs: https://api.slack.com/methods/usergroups.enable
 func (api *Client) EnableUserGroupContext(ctx context.Context, userGroup string, options ...EnableUserGroupOption) (UserGroup, error) {
+	if api == nil {
+		return UserGroup{}, ErrNilClient
+	}
 	params := EnableUserGroupParams{}
 
 	for _, opt := range options {
@@ -293,6 +302,9 @@ func (api *Client) GetUserGroups(options ...GetUserGroupsOption) ([]UserGroup, e
 // GetUserGroupsContext returns a list of user groups for the team with a custom context.
 // Slack API docs: https://api.slack.com/methods/usergroups.list
 func (api *Client) GetUserGroupsContext(ctx context.Context, options ...GetUserGroupsOption) ([]UserGroup, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params := GetUserGroupsParams{}
 
 	for _, opt := range options {
@@ -386,6 +398,9 @@ func (api *Client) UpdateUserGroup(userGroupID string, options ...UpdateUserGrou
 // UpdateUserGroupContext will update an existing user group with a custom context.
 // Slack API docs: https://api.slack.com/methods/usergroups.update
 func (api *Client) UpdateUserGroupContext(ctx context.Context, userGroupID string, options ...UpdateUserGroupsOption) (UserGroup, error) {
+	if api == nil {
+		return UserGroup{}, ErrNilClient
+	}
 	params := UpdateUserGroupsParams{}
 
 	for _, opt := range options {
@@ -460,6 +475,9 @@ func (api *Client) GetUserGroupMembers(userGroup string, options ...GetUserGroup
 // GetUserGroupMembersContext will retrieve the current list of users in a group with a custom context.
 // Slack API docs: https://api.slack.com/methods/usergroups.users.list
 func (api *Client) GetUserGroupMembersContext(ctx context.Context, userGroup string, options ...GetUserGroupMembersOption) ([]string, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	params := GetUserGroupMembersParams{}
 
 	for _, opt := range options {
@@ -534,6 +552,9 @@ func (api *Client) UpdateUserGroupMembers(userGroup string, members string, opti
 // UpdateUserGroupMembersContext will update the members of an existing user group with a custom context.
 // Slack API docs: https://api.slack.com/methods/usergroups.update
 func (api *Client) UpdateUserGroupMembersContext(ctx context.Context, userGroup string, members string, options ...UpdateUserGroupMembersOption) (UserGroup, error) {
+	if api == nil {
+		return UserGroup{}, ErrNilClient
+	}
 	params := UpdateUserGroupMembersParams{}
 
 	for _, opt := range options {

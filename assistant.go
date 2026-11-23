@@ -146,6 +146,9 @@ func (api *Client) SetAssistantThreadsSuggestedPrompts(params AssistantThreadsSe
 // SetAssistantThreadSuggestedPromptsContext sets the suggested prompts for a thread with a custom context
 // @see https://api.slack.com/methods/assistant.threads.setSuggestedPrompts
 func (api *Client) SetAssistantThreadsSuggestedPromptsContext(ctx context.Context, params AssistantThreadsSetSuggestedPromptsParameters) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 
 	values := url.Values{
 		"token": {api.token},
@@ -194,6 +197,9 @@ func (api *Client) SetAssistantThreadsStatus(params AssistantThreadsSetStatusPar
 // Note: the assistant:write scope is being deprecated in favor of chat:write.
 // @see https://api.slack.com/methods/assistant.threads.setStatus
 func (api *Client) SetAssistantThreadsStatusContext(ctx context.Context, params AssistantThreadsSetStatusParameters) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 
 	values := url.Values{
 		"token": {api.token},
@@ -245,6 +251,9 @@ func (api *Client) SetAssistantThreadsTitle(params AssistantThreadsSetTitleParam
 // SetAssistantThreadsTitleContext sets the title of a thread with a custom context
 // @see https://api.slack.com/methods/assistant.threads.setTitle
 func (api *Client) SetAssistantThreadsTitleContext(ctx context.Context, params AssistantThreadsSetTitleParameters) (err error) {
+	if api == nil {
+		return ErrNilClient
+	}
 
 	values := url.Values{
 		"token": {api.token},
@@ -284,6 +293,9 @@ func (api *Client) SearchAssistantContext(params AssistantSearchContextParameter
 // SearchAssistantContextContext searches messages across the Slack organization with a custom context
 // @see https://api.slack.com/methods/assistant.search.context
 func (api *Client) SearchAssistantContextContext(ctx context.Context, params AssistantSearchContextParameters) (*AssistantSearchContextResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}

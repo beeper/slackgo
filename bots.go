@@ -49,6 +49,9 @@ func (api *Client) GetBotInfo(parameters GetBotInfoParameters) (*Bot, error) {
 // GetBotInfoContext will retrieve the complete bot information using a custom context.
 // Slack API docs: https://api.slack.com/methods/bots.info
 func (api *Client) GetBotInfoContext(ctx context.Context, parameters GetBotInfoParameters) (*Bot, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}

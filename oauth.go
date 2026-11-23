@@ -278,6 +278,9 @@ func (api *Client) GetOpenIDConnectUserInfo() (*OpenIDConnectUserInfoResponse, e
 // GetOpenIDConnectUserInfoContext returns identity information about the user associated with the token.
 // Slack API docs: https://docs.slack.dev/reference/methods/openid.connect.userInfo
 func (api *Client) GetOpenIDConnectUserInfoContext(ctx context.Context) (*OpenIDConnectUserInfoResponse, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}

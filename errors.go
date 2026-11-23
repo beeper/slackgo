@@ -14,6 +14,7 @@ const (
 	ErrInvalidConfiguration = errorsx.String("invalid configuration")
 	ErrMissingHeaders       = errorsx.String("missing headers")
 	ErrExpiredTimestamp     = errorsx.String("timestamp is too old")
+	ErrNilClient            = errorsx.String("slack client is nil")
 )
 
 // internal errors

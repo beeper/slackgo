@@ -54,6 +54,9 @@ func (api *Client) ListReminders() ([]*Reminder, error) {
 // ListRemindersContext lists all the reminders created by or for the authenticated user with a custom context.
 // Slack API docs: https://api.slack.com/methods/reminders.list
 func (api *Client) ListRemindersContext(ctx context.Context) ([]*Reminder, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -70,6 +73,9 @@ func (api *Client) AddChannelReminder(channelID, text, time string) (*Reminder, 
 // NOTE: the ability to set reminders on a channel is currently undocumented but has been tested to work.
 // Slack API docs: https://api.slack.com/methods/reminders.add
 func (api *Client) AddChannelReminderContext(ctx context.Context, channelID, text, time string) (*Reminder, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token":   {api.token},
 		"text":    {text},
@@ -88,6 +94,9 @@ func (api *Client) AddUserReminder(userID, text, time string) (*Reminder, error)
 // AddUserReminderContext adds a reminder for a user with a custom context
 // Slack API docs: https://api.slack.com/methods/reminders.add
 func (api *Client) AddUserReminderContext(ctx context.Context, userID, text, time string) (*Reminder, error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 		"text":  {text},
@@ -106,6 +115,9 @@ func (api *Client) DeleteReminder(id string) error {
 // DeleteReminderContext deletes an existing reminder with a custom context
 // Slack API docs: https://api.slack.com/methods/reminders.delete
 func (api *Client) DeleteReminderContext(ctx context.Context, id string) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"token":    {api.token},
 		"reminder": {id},

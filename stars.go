@@ -42,6 +42,9 @@ func (api *Client) AddStar(channel string, item ItemRef) error {
 // AddStarContext stars an item in a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/stars.add
 func (api *Client) AddStarContext(ctx context.Context, channel string, item ItemRef) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"channel": {channel},
 		"token":   {api.token},
@@ -73,6 +76,9 @@ func (api *Client) RemoveStar(channel string, item ItemRef) error {
 // RemoveStarContext removes a starred item from a channel with a custom context.
 // Slack API docs: https://api.slack.com/methods/stars.remove
 func (api *Client) RemoveStarContext(ctx context.Context, channel string, item ItemRef) error {
+	if api == nil {
+		return ErrNilClient
+	}
 	values := url.Values{
 		"channel": {channel},
 		"token":   {api.token},
@@ -104,6 +110,9 @@ func (api *Client) ListStars(params StarsParameters) ([]Item, string, error) {
 // ListStarsContext returns information about the stars a user added with a custom context.
 // Slack API docs: https://api.slack.com/methods/stars.list
 func (api *Client) ListStarsContext(ctx context.Context, params StarsParameters) ([]Item, string, error) {
+	if api == nil {
+		return nil, "", ErrNilClient
+	}
 	values := url.Values{
 		"token": {api.token},
 	}
@@ -190,6 +199,9 @@ func (api *Client) ListAllStars() ([]Item, error) {
 
 // ListAllStarsContext returns the list of users (with their detailed information) with a custom context
 func (api *Client) ListAllStarsContext(ctx context.Context) (results []Item, err error) {
+	if api == nil {
+		return nil, ErrNilClient
+	}
 	p := api.ListStarsPaginated()
 	for err == nil {
 		p, err = p.next(ctx)
