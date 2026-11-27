@@ -468,30 +468,51 @@ func (api *Client) CompleteFileUpload(ctx context.Context, fu *FileUploadURL) er
 var quoteEscaper = strings.NewReplacer(`\`, `\\`, `"`, `\"`)
 
 func (api *Client) UploadToURLB(ctx context.Context, fu *FileUploadURL, mimeType string, data []byte) error {
+	return api.UploadToURLReader(ctx, fu, mimeType, bytes.NewReader(data), int64(len(data)))
+}
+
+func (api *Client) UploadToURLReader(ctx context.Context, fu *FileUploadURL, mimeType string, data io.Reader, size int64) error {
 	if api == nil {
 		return ErrNilClient
 	}
 	var buf bytes.Buffer
 	mp := multipart.NewWriter(&buf)
-	part, err := mp.CreatePart(textproto.MIMEHeader{
+	_, err := mp.CreatePart(textproto.MIMEHeader{
 		"Content-Disposition": {fmt.Sprintf(`form-data; name="file"; filename="%s"`, quoteEscaper.Replace(fu.Params.Filename))},
 		"Content-Type":        {mimeType},
 	})
 	if err != nil {
 		return err
 	}
-	_, err = part.Write(data)
-	if err != nil {
-		return err
-	}
+	header := bytes.Clone(buf.Bytes())
+	buf.Reset()
 	err = mp.Close()
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fu.UploadURL, &buf)
+	footer := buf.Bytes()
+	makeBody := func(part io.Reader) io.Reader {
+		return io.MultiReader(bytes.NewReader(header), part, bytes.NewReader(footer))
+	}
+	var getBody func() (io.ReadCloser, error)
+	var body io.Reader
+	body = makeBody(io.LimitReader(data, size))
+	readerAt, isReaderAt := data.(io.ReaderAt)
+	seeker, isSeeker := data.(io.Seeker)
+	if isReaderAt && isSeeker {
+		if start, err := seeker.Seek(0, io.SeekCurrent); err == nil {
+			body = makeBody(io.NewSectionReader(readerAt, start, size))
+			getBody = func() (io.ReadCloser, error) {
+				return io.NopCloser(makeBody(io.NewSectionReader(readerAt, start, size))), nil
+			}
+		}
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fu.UploadURL, body)
 	if err != nil {
 		return err
 	}
+	req.GetBody = getBody
+	req.ContentLength = int64(len(header)) + size + int64(len(footer))
 	req.Header.Set("Content-Type", mp.FormDataContentType())
 	req.Header.Set("Origin", "https://app.slack.com")
 	req.Header.Set("User-Agent", BrowserUserAgent)
@@ -500,7 +521,7 @@ func (api *Client) UploadToURLB(ctx context.Context, fu *FileUploadURL, mimeType
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		respDat, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("upload failed with status %d: %s", resp.StatusCode, respDat)
 	}
